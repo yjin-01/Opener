@@ -12,8 +12,8 @@ on:
 env:
   S3_BUCKET_NAME: nest-app-deploy-bucket # S3 버킷 이름
   PROJECT_NAME: nest-app # S3 버킷 내 폴더 이름
-  AWS_CODEDEPLOY_APPLICATION_NAME: nest-app-codedeploy # CodeDeploy 애플리케이션 이름
-  AWS_CODEDEPLOY_DEPLOYMENT_GROUP_NAME: nest-app-codedeploy-dev # CodeDeploy 배포 그룹 이름
+  AWS_CODEDEPLOY_APPLICATION_NAME: nest-app-codeDeploy # CodeDeploy 애플리케이션 이름
+  AWS_CODEDEPLOY_DEPLOYMENT_GROUP_NAME: nest-app-codeDeploy-dev # CodeDeploy 배포 그룹 이름
 
 jobs:
   build:
