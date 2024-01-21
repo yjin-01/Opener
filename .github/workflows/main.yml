@@ -1,0 +1,61 @@
+name: Deploy NestJS Application
+
+# main 브랜치로 push 혹은 pr이 날라와서 merge되면 workflow가 작동합니다.
+# workflow_dispatch는 수동으로 workflow를 작동시키도록 할 수 있도록 합니다.
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+env:
+  S3_BUCKET_NAME: nest-app-deploy-bucket # S3 버킷 이름
+  PROJECT_NAME: nest-app # S3 버킷 내 폴더 이름
+  AWS_CODEDEPLOY_APPLICATION_NAME: nest-app-codedeploy # CodeDeploy 애플리케이션 이름
+  AWS_CODEDEPLOY_DEPLOYMENT_GROUP_NAME: nest-app-codedeploy-dev # CodeDeploy 배포 그룹 이름
+
+jobs:
+  build:
+    # JOB을 실행할 러너(환경)
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 해당 workflow가 레포지토리에 접근
+      # 레포지토리의 소스를 빌드위해 액션을 사용
+      - name: Checkout Repository
+        uses: actions/checkout@v2.4.2
+     
+      # 사용할 NodeJS를 세팅.
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 16.16.0
+      
+      # Dependency들을 설치
+      - name: Install Dependencies
+        run: npm install
+        
+      # NestJS Application을 빌드
+      - name: Build a Nest Application
+        run: npm run build
+        shell: bash
+      
+      # 레포지토리를 압축
+      # 다만 불필요한 node_module, coverage, src, test, readme, .git* 등의 파일은 제외
+      - name: Make a zip file
+        run: zip -r ./$GITHUB_SHA.zip . -x "node_modules/*" "coverage/*" "src/*" "test/*" "README.md" "*.git*"
+        shell: bash
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+      
+      - name: Code Deploy
+        run: aws deploy create-deployment --application-name $AWS_CODEDEPLOY_APPLICATION_NAME --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name $AWS_CODEDEPLOY_DEPLOYMENT_GROUP_NAME --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
