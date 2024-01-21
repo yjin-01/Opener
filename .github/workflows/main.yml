@@ -26,7 +26,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2.4.2
      
-      # 사용할 NodeJS를 세팅.
+      # 사용할 NodeJS를 세팅
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.4.1
         with:
