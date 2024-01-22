@@ -10,7 +10,7 @@
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=dev nest start --watch",
     "start:debug": "cross-env NODE_ENV=dev nest start --debug --watch",
-    "start:prod": "cross-env NODE_ENV=dev pm2 dist/src/main"
+    "start:prod": "pm2 dist/src/main.js"
   },
   "lint-staged": {
     "*.ts": [
