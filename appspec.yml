@@ -8,7 +8,7 @@ file_exists_behavior: OVERWRITE # 이미 있는 경우 덮어쓰기 옵션
 
 # files에서 가져온 파일들에게 권한을 어떻게 적용해야하는지 지정하는 곳
 permissions:
-  - object: / 
+  - object: /
     pattern: '**'
     owner: ubuntu
     group: ubuntu
@@ -18,3 +18,7 @@ hooks:
     - location: scripts/execute.sh # 스크립트의 위치 => files.destination에 정의한 경로에 대한 상대경로
       timeout: 600 # 스크립트 실행시, 여기에 지정된 시간을 초과하면 X. 최대 3600초
       runas: ubuntu # 스크립트 실행 시 가장하는 사용자
+  ApplicationStart:
+    - location: scripts/start_server.sh
+      timeout: 300
+      runas: ubuntu
