@@ -3,7 +3,8 @@ os: linux # Amazon Linux, RHEL, Ubuntu Server일 경우 "linux", Windows Server�
 files:
   - source: / # 인스턴스에 복사할 S3 파일의 경로 / 로 설정하면S3_BUCKET_NAME/PROJECT_NAME/GITHUB_SHA.zip
     destination: /home/ubuntu/nest-app # S3에서 가져온 파일을 저장할 위치
-    overwrite: yes # 덮어쓰기를 허용하는 옵션입니다.
+    overwrite: yes # 덮어쓰기를 허용하는 옵션
+file_exists_behavior: OVERWRITE # 이미 있는 경우 덮어쓰기
 
 # files에서 가져온 파일들에게 권한을 어떻게 적용해야하는지 지정하는 곳
 permissions:
