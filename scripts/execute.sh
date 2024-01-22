@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd /home/ubuntu/nest-app
-sh scripts/docker-script.sh
+sh scripts/pm2-script.sh
