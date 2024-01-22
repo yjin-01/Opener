@@ -5,5 +5,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
 
-npm run build
-npm run start:prod
+#npm run build
+#npm run start:prod
+
+pm2 start ./dist/src/main.js
