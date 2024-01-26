@@ -7,5 +7,6 @@ export NVM_DIR="$HOME/.nvm"
 
 #npm run build
 #npm run start:prod
-
+cd ~/nest-app
 pm2 start "npm run start:prod"
+
