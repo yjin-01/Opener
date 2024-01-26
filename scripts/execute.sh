@@ -4,6 +4,6 @@ REPOSITORY=/home/ubuntu/nest-app
 cd $REPOSITORY
 
 
-npx pm2 start /dist/src/main --name illo
+npx pm2 start /dist/src/main.js --name illo
 
 
