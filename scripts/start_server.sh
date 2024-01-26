@@ -8,4 +8,4 @@ export NVM_DIR="$HOME/.nvm"
 #npm run build
 #npm run start:prod
 
-pm2 start ~/nest-app/dist/src/main.js --NODE_ENV dev
+pm2 start "npm run start:prod"
