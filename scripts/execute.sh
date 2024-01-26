@@ -1,6 +1,9 @@
 #!/bin/sh
+REPOSITORY=/home/ubuntu/nest-app
 
-cd /home/ubuntu/nest-app
-sh scripts/start_server.sh
+cd $REPOSITORY
+
+
+sudo pm2 /dist/src/main --name illo
 
 
