@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import DatabaseOption from './database.options';
 import UserModule from './user/user.module';
+import AuthenticationModule from './authentication/authentication.module';
 
 @Module({
   imports: [
@@ -13,11 +14,11 @@ import UserModule from './user/user.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
     UserModule,
+    AuthenticationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

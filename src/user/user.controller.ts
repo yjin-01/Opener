@@ -37,7 +37,7 @@ export class UserController {
   })
   @ApiBadRequestResponse({
     description:
-      'client에서 요청이 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: UserSignupBadRequest,
   })
   async signUp(
