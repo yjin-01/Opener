@@ -2,16 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { request } from 'node:https';
 
 @Injectable()
-export class GoogleOauth {
+export class KakaoApi {
   async requestGoogleOauth(accessToken): Promise<any | null> {
     try {
       return await new Promise((resolve, reject) => {
         const options = {
-          hostname: 'www.googleapis.com',
-          path: `/oauth2/v1/userinfo?access_token=${accessToken}`,
+          hostname: 'kapi.kakao.com',
+          path: '/v2/user/me',
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
           },
         };
 
@@ -22,7 +23,6 @@ export class GoogleOauth {
             result += chunk;
           });
           res.on('end', () => {
-            console.log('No more data in response.');
             resolve(JSON.parse(result));
           });
         });
@@ -40,7 +40,8 @@ export class GoogleOauth {
   }
 
   isValid(userInfo): void {
-    if (!userInfo.verified_email) {
+    if (!userInfo?.kakao_account?.is_email_verified) {
+      console.log(userInfo);
       throw new Error();
     }
   }
