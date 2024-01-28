@@ -2,13 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/user/interface/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { GoogleOauth } from './api/google.oauth';
+import { GoogleApi } from './api/google';
 import { AuthenticationLoginRequest } from './dto/authentication.login.request';
+import { KakaoApi } from './api/kakao';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
-    @Inject('GoogleOauth') private readonly googleOauth: GoogleOauth,
+    @Inject('KakaoApi') private readonly kakaoApi: KakaoApi,
+    @Inject('GoogleApi') private readonly googleApi: GoogleApi,
     @Inject('UserRepository') private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -33,13 +35,16 @@ export class AuthenticationService {
 
   async login(loginDto: AuthenticationLoginRequest): Promise<any | null> {
     try {
-      if (loginDto.signinMethod !== 'google') {
+      let tokenInfo;
+
+      if (loginDto.signinMethod === 'google') {
+        tokenInfo = await this.googleApi.getTokenInfo(loginDto.accessToken);
+      } else if (loginDto.signinMethod === 'kakao') {
+        tokenInfo = await this.kakaoApi.getTokenInfo(loginDto.accessToken);
+      } else {
         throw new Error();
       }
 
-      const tokenInfo = await this.googleOauth.getTokenInfo(
-        loginDto.accessToken,
-      );
       const user = await this.userRepository.findBy(tokenInfo);
 
       if (!user) {
