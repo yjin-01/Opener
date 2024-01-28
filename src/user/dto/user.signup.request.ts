@@ -1,9 +1,5 @@
 import {
-  IsUrl,
-  IsOptional,
-  IsString,
-  IsEmail,
-  IsStrongPassword,
+  IsUrl, IsOptional, IsString, IsEmail, Length,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -22,7 +18,7 @@ export class UserSignupRequest {
     email: string;
 
   @ApiProperty({ description: '이메일', default: 'test@test.com' })
-  @IsStrongPassword({ minLength: 8 })
+  @Length(8, 20)
     password: string;
 
   @ApiPropertyOptional({ description: '가입한 유저 닉네임', default: 'p1z7' })
