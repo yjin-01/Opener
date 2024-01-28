@@ -1,6 +1,5 @@
 #!/bin/bash
 
 
-
-#npm run build
-#npm run start:prod
+# echo "application start" > ~/log.txt
+# pm2 reload ./ecosystem.config.js

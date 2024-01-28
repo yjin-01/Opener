@@ -42,7 +42,7 @@ jobs:
       # 레포지토리를 압축
       # 다만 불필요한 node_module, coverage, src, test, readme, .git* 등의 파일은 제외
       - name: Make a zip file
-        run: zip -r ./$GITHUB_SHA.zip . -x "coverage/*" "src/*" "test/*" "README.md" "*.git*"
+        run: zip -r ./$GITHUB_SHA.zip . -x "coverage/*" "node_modules/*" "src/*" "test/*" "README.md" "*.git*"
         shell: bash
 
       - name: Configure AWS credentials
