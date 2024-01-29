@@ -79,7 +79,7 @@ export class EventCreateRequest {
     default: 'https://event.com',
   })
   @IsString()
-    evnetUrl: string;
+    eventUrl: string;
 
   @ApiPropertyOptional({
     description: '행사 주최자 SNS 아이디',
