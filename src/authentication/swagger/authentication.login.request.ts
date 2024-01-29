@@ -19,4 +19,12 @@ export class AuthenticationLoginRequest {
     default: 'google',
   })
     signinMethod: string;
+
+  isKakao(): boolean {
+    return this.signinMethod === 'kakao';
+  }
+
+  isGoogle(): boolean {
+    return this.signinMethod === 'google';
+  }
 }
