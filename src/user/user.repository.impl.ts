@@ -8,6 +8,17 @@ import { ExistException } from './exception/exist.exception';
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async findBy(user: any): Promise<User | null> {
+    try {
+      return await this.entityManager
+        .getRepository(User)
+        .findOneBy({ email: user.email });
+    } catch (err) {
+      console.error(err);
+      throw new Error('Method not implemented.');
+    }
+  }
+
   async create(user): Promise<User | null> {
     try {
       const alreadyExistUser = await this.entityManager

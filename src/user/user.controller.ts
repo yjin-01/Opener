@@ -10,12 +10,14 @@ import {
   ApiOperation,
   ApiBody,
   ApiCreatedResponse,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
-import { UserSignupDto } from './dto/user.signup';
+import { UserSignupRequest } from './dto/user.signup.request';
 import { UserSignupResponseInterceptor } from './user.signup.response.interceptor';
 import { UserSignupResponse } from './dto/user.signup.response';
+import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
 
 @ApiTags('유저')
 @Controller('/users')
@@ -28,16 +30,21 @@ export class UserController {
     summary: '회원 가입',
     description: '새로운 회원 정보가 추가됩니다',
   })
-  @ApiBody({ type: UserSignupDto })
+  @ApiBody({ type: UserSignupRequest })
   @ApiCreatedResponse({
-    description: '유저를 생성한다.',
+    description: '유저가 생성되었을 때 반환합니다',
     type: UserSignupResponse,
   })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserSignupBadRequest,
+  })
   async signUp(
-    @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
+    @Body(new UserValidationPipe()) userSignupRequest: UserSignupRequest,
   ): Promise<any | null> {
     try {
-      return await this.userService.createUser(userSignupDto);
+      return await this.userService.createUser(userSignupRequest);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);

@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import DatabaseOption from './database.options';
 import UserModule from './user/user.module';
 import EventModule from './event/event.module';
+import AuthenticationModule from './authentication/authentication.module';
 
 @Module({
   imports: [
@@ -14,12 +15,12 @@ import EventModule from './event/event.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
     EventModule,
     UserModule,
+    AuthenticationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

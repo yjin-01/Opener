@@ -1,4 +1,5 @@
 #!/bin/bash
 
 
-echo "application start" > ~/log.txt
+# echo "application start" > ~/log.txt
+# pm2 reload ./ecosystem.config.js
