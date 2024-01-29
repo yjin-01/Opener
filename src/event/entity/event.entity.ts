@@ -37,7 +37,7 @@ export class Event {
     endDate: Date;
 
   @Column({ name: 'event_url' })
-    evnetUrl: string;
+    eventUrl: string;
 
   @Column({ name: 'user_id' })
     userId: string;
