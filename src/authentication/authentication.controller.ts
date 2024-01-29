@@ -12,9 +12,11 @@ import {
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { AuthenticationService } from './authentication.service';
-import { AuthenticationLoginRequest } from './dto/authentication.login.request';
-import { AuthenticationLoginResponse } from './dto/authentication.login.response';
+import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
+import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
 import { AuthenticationLoginBadrequest } from './swagger/authentication.login.badrequest';
+import { LoginDto } from './dto/login.dto';
+import { AuthenticationValidationPipe } from './authentication.validtion.pipe';
 
 @ApiTags('인증')
 @Controller('/authentication')
@@ -36,9 +38,11 @@ export class AuthenticationController {
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: AuthenticationLoginBadrequest,
   })
-  signin(@Body() loginRequest: AuthenticationLoginRequest): Promise<null> {
+  signin(
+    @Body(new AuthenticationValidationPipe()) loginDto: LoginDto,
+  ): Promise<null> {
     try {
-      return this.authenticationService.login(loginRequest);
+      return this.authenticationService.login(loginDto);
     } catch (err) {
       console.error(err);
       throw new InternalServerErrorException(err);

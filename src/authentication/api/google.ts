@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { request } from 'node:https';
+import { UserInformationApi } from './interface/userinformation.api';
+import { LoginDto } from '../dto/login.dto';
 
 @Injectable()
-export class GoogleApi {
-  async requestGoogleOauth(accessToken): Promise<any | null> {
+export class GoogleApi implements UserInformationApi {
+  constructor(private readonly loginDto: LoginDto) {}
+
+  async request(): Promise<any | null> {
     try {
       return await new Promise((resolve, reject) => {
         const options = {
           hostname: 'www.googleapis.com',
-          path: `/oauth2/v1/userinfo?access_token=${accessToken}`,
+          path: `/oauth2/v1/userinfo?access_token=${this.loginDto.getAccessToken()}`,
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -21,16 +25,10 @@ export class GoogleApi {
           res.on('data', (chunk) => {
             result += chunk;
           });
-          res.on('end', () => {
-            console.log('No more data in response.');
-            resolve(JSON.parse(result));
-          });
+          res.on('end', () => resolve(JSON.parse(result)));
         });
 
-        req.on('error', (e) => {
-          reject(e);
-        });
-
+        req.on('error', reject);
         req.end();
       });
     } catch (err) {
@@ -45,8 +43,8 @@ export class GoogleApi {
     }
   }
 
-  async getTokenInfo(accessToken): Promise<any | null> {
-    const userInfo = await this.requestGoogleOauth(accessToken);
+  async getTokenInfo(): Promise<any | null> {
+    const userInfo = await this.request();
     this.isValid(userInfo);
     return userInfo;
   }
