@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import DatabaseOption from './database.options';
 import UserModule from './user/user.module';
+import EventModule from './event/event.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import UserModule from './user/user.module';
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
+    EventModule,
     UserModule,
   ],
   controllers: [AppController],
