@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import DatabaseOption from './database.options';
 import UserModule from './user/user.module';
+import EventModule from './event/event.module';
 import AuthenticationModule from './authentication/authentication.module';
 
 @Module({
@@ -17,6 +18,7 @@ import AuthenticationModule from './authentication/authentication.module';
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
+    EventModule,
     UserModule,
     AuthenticationModule,
   ],
