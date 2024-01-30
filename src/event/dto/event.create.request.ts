@@ -18,6 +18,13 @@ export class EventCreateRequest {
   @IsEnum(EventTypeEnum)
     eventType: EventTypeEnum;
 
+  @ApiPropertyOptional({
+    description: '행사 참여자가 그룹인 경우 groupId',
+    default: 'e073b452-9edd-41',
+  })
+  @IsString()
+    groupId: string;
+
   @ApiProperty({
     description: '행사 참여자 artistId 리스트',
     default: ['1fab0958-dafc-48', '454d54d7-a6c8-4c'],

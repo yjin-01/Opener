@@ -18,6 +18,9 @@ export class EventTarget {
   @Column({ name: 'artist_id' })
     artistId: string;
 
+  @Column({ name: 'group_id' })
+    groupId: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp',
