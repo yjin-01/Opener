@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistRepository } from './artist.repository';
 import { ArtistResponse } from './dto/artist.response';
+import { GetArtistListRequest } from './swagger/artist.getlist.request';
+import { ArtistListResponse } from './dto/artist.list.response';
 
 @Injectable()
 export class ArtistService {
@@ -19,15 +21,19 @@ export class ArtistService {
     }
   }
 
-  async getArtistList(
-    category: string,
-    keyword: string,
-  ): Promise<ArtistResponse[] | null> {
+  async getArtistList({
+    category,
+    keyword,
+    page,
+    size,
+  }: GetArtistListRequest): Promise<ArtistListResponse | null> {
     try {
-      const result = await this.artistRepository.findAllArtsit(
+      const result = await this.artistRepository.findAllArtsit({
         category,
         keyword,
-      );
+        page,
+        size,
+      });
       return result;
     } catch (error) {
       console.error(error);
