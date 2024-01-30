@@ -8,9 +8,25 @@ import { GroupResponse } from './dto/group.response';
 export class GroupRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findAllGroup(): Promise<GroupResponse[]> {
+  async findAllGroup(keyword: string): Promise<GroupResponse[] | null> {
     try {
-      const groupList = await this.entityManager.getRepository(Group).find();
+      const query = this.entityManager
+        .getRepository(Group)
+        .createQueryBuilder('group')
+        .where('1=1');
+
+      if (keyword) {
+        query.andWhere('group.group_name LIKE :groupName', {
+          groupName: `%${keyword}%`,
+        });
+      }
+
+      query
+        .select(['group.group_id', 'group.group_name', 'group.group_image'])
+        .orderBy('group.group_name', 'ASC')
+        .getRawMany();
+
+      const groupList = await query.getRawMany();
 
       return groupList;
     } catch (error) {

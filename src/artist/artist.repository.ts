@@ -10,16 +10,36 @@ import { ArtistGroup } from './entity/artist_group.entity';
 export class ArtistRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findAllArtsit(): Promise<ArtistResponse[] | null> {
-    const artistList = await this.entityManager
+  async findAllArtsit(
+    category: string,
+    keyword: string,
+  ): Promise<ArtistResponse[] | null> {
+    const query = this.entityManager
       .getRepository(Artist)
       .createQueryBuilder('artist')
+      .where('1=1');
+
+    if (category === 'artist' && keyword) {
+      query.andWhere('artist.artist_name LIKE :artistName', {
+        artistName: `%${keyword}%`,
+      });
+    }
+
+    query
       .leftJoin(
         ArtistGroup,
         'artistGroup',
         'artistGroup.artist_id = artist.artist_id',
       )
-      .leftJoin(Group, 'group', 'group.group_id = artistGroup.group_id')
+      .leftJoin(Group, 'group', 'group.group_id = artistGroup.group_id');
+
+    if (category === 'group' && keyword) {
+      query.andWhere('group.group_name LIKE :groupName', {
+        groupName: `%${keyword}%`,
+      });
+    }
+
+    query
       .select([
         'artist.artist_id',
         'artist.artist_name',
@@ -30,6 +50,8 @@ export class ArtistRepository {
       ])
       .orderBy('group.group_id', 'DESC')
       .getRawMany();
+
+    const artistList = await query.getRawMany();
 
     return artistList;
   }

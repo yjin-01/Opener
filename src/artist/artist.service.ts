@@ -19,9 +19,15 @@ export class ArtistService {
     }
   }
 
-  async getArtistList(): Promise<ArtistResponse[] | null> {
+  async getArtistList(
+    category: string,
+    keyword: string,
+  ): Promise<ArtistResponse[] | null> {
     try {
-      const result = await this.artistRepository.findAllArtsit();
+      const result = await this.artistRepository.findAllArtsit(
+        category,
+        keyword,
+      );
       return result;
     } catch (error) {
       console.error(error);
