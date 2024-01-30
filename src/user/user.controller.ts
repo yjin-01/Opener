@@ -14,10 +14,11 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
-import { UserSignupRequest } from './dto/user.signup.request';
+import { UserSignupRequest } from './swagger/user.signup.request';
 import { UserSignupResponseInterceptor } from './user.signup.response.interceptor';
-import { UserSignupResponse } from './dto/user.signup.response';
+import { UserSignupResponse } from './swagger/user.signup.response';
 import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
+import { UserSignupDto } from './dto/user.signup.dto';
 
 @ApiTags('유저')
 @Controller('/users')
@@ -41,10 +42,10 @@ export class UserController {
     type: UserSignupBadRequest,
   })
   async signUp(
-    @Body(new UserValidationPipe()) userSignupRequest: UserSignupRequest,
+    @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
   ): Promise<any | null> {
     try {
-      return await this.userService.createUser(userSignupRequest);
+      return await this.userService.createUser(userSignupDto);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
