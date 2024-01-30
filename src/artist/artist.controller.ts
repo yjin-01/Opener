@@ -5,6 +5,7 @@ import {
   Body,
   Get,
   Param,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -12,6 +13,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
@@ -26,15 +28,33 @@ export class ArtistController {
   @ApiOperation({
     summary: '아티스트 목록 조회',
     description: `등록된 모든 아티스트를 조회합니다. 
-      **group_id, group_name이 null인 경우 솔로**`,
+      [**group_id, group_name이 null인 경우 솔로**]
+      [그룹명, 아티스트명으로 검색 가능]`,
+  })
+  @ApiQuery({
+    name: 'category',
+    description: '검색 카테고리 정보(group 또는 artist)',
+    type: String,
+    example: 'artist',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'keyword',
+    description: '검색할 그룹명 또는 아티스트이름',
+    type: String,
+    example: '정우',
+    required: false,
   })
   @ApiCreatedResponse({
     description: '등록된 아티스트 목록',
     type: [ArtistResponse],
   })
-  async getArtistList(): Promise<ArtistResponse[] | null> {
+  async getArtistList(
+    @Query('category') category: string,
+      @Query('keyword') keyword: string,
+  ): Promise<ArtistResponse[] | null> {
     try {
-      return await this.artistService.getArtistList();
+      return await this.artistService.getArtistList(category, keyword);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -47,8 +67,8 @@ export class ArtistController {
     description: '특정 그룹의 모든 아티스트를 조회합니다.',
   })
   @ApiParam({
-    description: '조회할 그룹의 ID',
     name: 'id',
+    description: '조회할 그룹의 ID',
     type: String,
   })
   @ApiCreatedResponse({

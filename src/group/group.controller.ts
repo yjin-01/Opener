@@ -4,12 +4,14 @@ import {
   Post,
   Body,
   Get,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBody,
   ApiCreatedResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { GroupCreateRequest } from './dto/group.create.request';
 import { GroupService } from './group.service';
@@ -23,15 +25,24 @@ export class GroupController {
   @Get()
   @ApiOperation({
     summary: '그룹 목록 조회',
-    description: '그룹 목록을 조회 가능합니다.',
+    description: '그룹 목록을 조회 가능합니다. [그룹명으로 검색 가능]',
+  })
+  @ApiQuery({
+    name: 'keyword',
+    description: '검색할 그룹명',
+    type: String,
+    example: 'test',
+    required: false,
   })
   @ApiCreatedResponse({
     description: '등록되어있는 그룹 목록 조회',
     type: [GroupResponse],
   })
-  async getGroupList(): Promise<GroupResponse[] | null> {
+  async getGroupList(
+    @Query('keyword') keyword: string,
+  ): Promise<GroupResponse[] | null> {
     try {
-      return await this.groupService.getGroupList();
+      return await this.groupService.getGroupList(keyword);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);

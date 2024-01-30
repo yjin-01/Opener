@@ -7,9 +7,9 @@ import { GroupCreateRequest } from './dto/group.create.request';
 export class GroupService {
   constructor(private readonly groupRepository: GroupRepository) {}
 
-  async getGroupList(): Promise<GroupResponse[] | null> {
+  async getGroupList(keyword: string): Promise<GroupResponse[] | null> {
     try {
-      const result = await this.groupRepository.findAllGroup();
+      const result = await this.groupRepository.findAllGroup(keyword);
       return result;
     } catch (error) {
       console.error(error);
