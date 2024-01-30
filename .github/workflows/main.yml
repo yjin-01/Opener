@@ -5,8 +5,6 @@ name: Deploy NestJS Application
 on:
   push:
     branches: [develop]
-  pull_request:
-    branches: [develop]
   workflow_dispatch:
 
 env:
