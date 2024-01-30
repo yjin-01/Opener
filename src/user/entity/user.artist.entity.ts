@@ -5,32 +5,31 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  OneToMany,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
-import { UserToArtist } from './user.artist.entity';
+import { Exclude, Expose } from 'class-transformer';
+import { User } from './user.entity';
 // https://stackoverflow.com/questions/46589957/es6-modules-and-circular-dependency/46593566#46593566
-@Entity('users')
-export class User {
+@Exclude()
+@Entity('users_artists')
+export class UserToArtist {
+  constructor(userId, artistId) {
+    this.userId = userId;
+    this.artistId = artistId;
+  }
+
+  @Expose()
   @PrimaryGeneratedColumn('uuid')
     id: string;
 
-  @Column()
-    username: string;
+  @Expose()
+  @Column('uuid', { name: 'user_id' })
+    userId: string;
 
-  @Column({ name: 'signup_method' })
-    signupMethod: string;
-
-  @Column()
-    password: string;
-
-  @Column()
-    email: string;
-
-  @Column()
-    alias: string;
-
-  @Column({ name: 'profile_image' })
-    profileImage: string;
+  @Expose()
+  @Column('uuid', { name: 'artist_id' })
+    artistId: string;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -52,6 +51,7 @@ export class User {
   })
     deletedAt: Date;
 
-  @OneToMany(() => UserToArtist, (userArtist) => userArtist.user)
-    userArtists: UserToArtist[];
+  @ManyToOne(() => User, (user) => user.userArtists)
+  @JoinColumn({ name: 'user_id' })
+    user: User;
 }
