@@ -16,7 +16,7 @@ export class EventRepository {
   ): Promise<EventCreateResponse | null> {
     try {
       const {
-        artists, tags, eventImages, ...rest
+        groupId, artists, tags, eventImages, ...rest
       } = eventInfo;
 
       // 1. 행사 저장
@@ -35,6 +35,7 @@ export class EventRepository {
       const insertEventId = insertEvent?.identifiers[0].eventId.slice(0, 16);
 
       const artistDataToInsert = artists.map((el) => ({
+        groupId,
         artistId: el,
         eventId: insertEventId,
       }));
