@@ -7,6 +7,8 @@ import DatabaseOption from './database.options';
 import UserModule from './user/user.module';
 import EventModule from './event/event.module';
 import AuthenticationModule from './authentication/authentication.module';
+import GroupModule from './group/group.module';
+import ArtistModule from './artist/artist.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import AuthenticationModule from './authentication/authentication.module';
     EventModule,
     UserModule,
     AuthenticationModule,
+    ArtistModule,
+    GroupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
