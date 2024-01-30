@@ -18,6 +18,8 @@ import {
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
 import { ArtistResponse } from './dto/artist.response';
+import { GetArtistListRequest } from './swagger/artist.getlist.request';
+import { ArtistListResponse } from './dto/artist.list.response';
 
 @ApiTags('그룹&아티스트')
 @Controller('/artist')
@@ -32,29 +34,28 @@ export class ArtistController {
       [그룹명, 아티스트명으로 검색 가능]`,
   })
   @ApiQuery({
-    name: 'category',
-    description: '검색 카테고리 정보(group 또는 artist)',
-    type: String,
-    example: 'artist',
-    required: false,
-  })
-  @ApiQuery({
-    name: 'keyword',
-    description: '검색할 그룹명 또는 아티스트이름',
-    type: String,
-    example: '정우',
-    required: false,
+    name: 'getArtistListRequest',
+    type: GetArtistListRequest,
   })
   @ApiCreatedResponse({
     description: '등록된 아티스트 목록',
-    type: [ArtistResponse],
+    type: [ArtistListResponse],
   })
   async getArtistList(
     @Query('category') category: string,
       @Query('keyword') keyword: string,
-  ): Promise<ArtistResponse[] | null> {
+      @Query('page') page: number,
+      @Query('size') size: number,
+  ): Promise<ArtistListResponse | null> {
     try {
-      return await this.artistService.getArtistList(category, keyword);
+      console.log(typeof page, page);
+      console.log(typeof size, size);
+      return await this.artistService.getArtistList({
+        category,
+        keyword,
+        page,
+        size,
+      });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
