@@ -5,15 +5,24 @@ import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistResponse } from './dto/artist.response';
 import { Artist } from './entity/artist.entity';
 import { ArtistGroup } from './entity/artist_group.entity';
+import { GetArtistListRequest } from './swagger/artist.getlist.request';
+import { ArtistListResponse } from './dto/artist.list.response';
 
 @Injectable()
 export class ArtistRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findAllArtsit(
-    category: string,
-    keyword: string,
-  ): Promise<ArtistResponse[] | null> {
+  async findAllArtsit({
+    category,
+    keyword,
+    page,
+    size,
+  }: GetArtistListRequest): Promise<ArtistListResponse | null> {
+    const itemsPerPage = Number(size) || 12; // 페이지당 아이템 수
+    const currentPage = Number(page) || 1; // 현재 페이지
+
+    const skip = (currentPage - 1) * itemsPerPage;
+
     const query = this.entityManager
       .getRepository(Artist)
       .createQueryBuilder('artist')
@@ -39,21 +48,24 @@ export class ArtistRepository {
       });
     }
 
-    query
-      .select([
-        'artist.artist_id',
-        'artist.artist_name',
-        'artist.birthday',
-        'artist.artist_image',
-        'group.group_id',
-        'group.group_name',
-      ])
-      .orderBy('group.group_id', 'DESC')
-      .getRawMany();
+    query.select([
+      'artist.artist_id',
+      'artist.artist_name',
+      'artist.birthday',
+      'artist.artist_image',
+      'group.group_id',
+      'group.group_name',
+    ]);
+
+    const totalCount = await query.getCount();
+
+    query.orderBy('group.group_id', 'DESC').offset(skip).limit(itemsPerPage);
 
     const artistList = await query.getRawMany();
 
-    return artistList;
+    return {
+      totalCount, page: currentPage, size: itemsPerPage, artistList,
+    };
   }
 
   async findAllArtsitByGroup(
