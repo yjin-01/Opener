@@ -4,6 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import DatabaseOption from './database.options';
+import UserModule from './user/user.module';
+import EventModule from './event/event.module';
+import AuthenticationModule from './authentication/authentication.module';
+import GroupModule from './group/group.module';
+import ArtistModule from './artist/artist.module';
 
 @Module({
   imports: [
@@ -12,10 +17,14 @@ import DatabaseOption from './database.options';
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
+    EventModule,
+    UserModule,
+    AuthenticationModule,
+    ArtistModule,
+    GroupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

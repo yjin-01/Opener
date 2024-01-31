@@ -1,0 +1,51 @@
+import { Injectable } from '@nestjs/common';
+import { request } from 'node:https';
+import { UserInformationApi } from './interface/userinformation.api';
+import { LoginDto } from '../dto/login.dto';
+
+@Injectable()
+export class GoogleApi implements UserInformationApi {
+  constructor(private readonly loginDto: LoginDto) {}
+
+  async request(): Promise<any | null> {
+    try {
+      return await new Promise((resolve, reject) => {
+        const options = {
+          hostname: 'www.googleapis.com',
+          path: `/oauth2/v1/userinfo?access_token=${this.loginDto.getAccessToken()}`,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+
+        const req = request(options, (res) => {
+          let result = '';
+          res.setEncoding('utf8');
+          res.on('data', (chunk) => {
+            result += chunk;
+          });
+          res.on('end', () => resolve(JSON.parse(result)));
+        });
+
+        req.on('error', reject);
+        req.end();
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  isValid(userInfo): void {
+    if (!userInfo.verified_email) {
+      throw new Error();
+    }
+  }
+
+  async getTokenInfo(): Promise<any | null> {
+    const userInfo = await this.request();
+    this.isValid(userInfo);
+    return userInfo;
+  }
+}
