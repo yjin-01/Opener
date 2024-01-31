@@ -50,10 +50,7 @@ export class UserRepositoryImple implements UserRepository {
 
         return transactioManager
           .getRepository(User)
-          .createQueryBuilder('u')
-          .leftJoinAndSelect('u.userArtists', 'userArtists')
-          .where(`userArtists.userId = '${identifiers[0].id}'`)
-          .getOne();
+          .findOneBy({ id: identifiers[0].id });
       });
     } catch (error) {
       console.error(error);
