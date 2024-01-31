@@ -9,6 +9,7 @@ import EventModule from './event/event.module';
 import AuthenticationModule from './authentication/authentication.module';
 import GroupModule from './group/group.module';
 import ArtistModule from './artist/artist.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import ArtistModule from './artist/artist.module';
     AuthenticationModule,
     ArtistModule,
     GroupModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
