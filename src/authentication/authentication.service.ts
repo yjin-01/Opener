@@ -30,6 +30,21 @@ export class AuthenticationService {
     }
   }
 
+  async generateToken(tokens): Promise<string | null> {
+    try {
+      const user = await this.jwtService.verifyAsync(tokens.refreshToken, {
+        secret: this.configService.get('REFRESH_SECRET'),
+      });
+      return await this.jwtService.signAsync(
+        { userId: user.id, username: user.username },
+        { secret: this.configService.get('ACCESS_SECRET') },
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
   async login(loginDto: LoginDto): Promise<any | null> {
     try {
       const tokenInfo = await UserInformationApiFactory.getApi(loginDto).getTokenInfo();
