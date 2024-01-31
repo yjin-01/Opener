@@ -1,4 +1,4 @@
-export class ExistException extends Error {
+export class InvalidException extends Error {
   message: string;
 
   statusCode: number;
@@ -11,6 +11,6 @@ export class ExistException extends Error {
     this.statusCode = 400;
     this.message = 'Bad Request';
 
-    Object.setPrototypeOf(this, ExistException.prototype);
+    Object.setPrototypeOf(this, InvalidException.prototype);
   }
 }

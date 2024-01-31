@@ -15,9 +15,13 @@ export class UserSignupRequest {
   @IsEmail()
     email: string;
 
-  @ApiProperty({ description: '이메일', default: 'test@test.com' })
+  @ApiProperty({ description: '패스워드', default: '패스워드8자이상' })
   @Length(8, 20)
     password: string;
+
+  @ApiProperty({ description: '패스워드 확인', default: '패스워드8자이상' })
+  @Length(8, 20)
+    passwordCheck: string;
 
   @ApiPropertyOptional({ description: '가입한 유저 닉네임', default: 'p1z7' })
   @IsOptional()

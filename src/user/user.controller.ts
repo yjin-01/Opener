@@ -4,6 +4,8 @@ import {
   Post,
   Body,
   UseInterceptors,
+  BadRequestException,
+  SetMetadata,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,12 +21,17 @@ import { UserSignupResponseInterceptor } from './user.signup.response.intercepto
 import { UserSignupResponse } from './swagger/user.signup.response';
 import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
 import { UserSignupDto } from './dto/user.signup.dto';
+import { ExistException } from './exception/exist.exception';
+import { InvalidException } from './exception/invalid.exception';
+
+const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('유저')
 @Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @UseInterceptors(UserSignupResponseInterceptor)
   @Post()
   @ApiOperation({
@@ -47,6 +54,12 @@ export class UserController {
     try {
       return await this.userService.createUser(userSignupDto);
     } catch (error) {
+      if (error instanceof InvalidException) {
+        throw new BadRequestException(error);
+      }
+      if (error instanceof ExistException) {
+        throw new BadRequestException(error);
+      }
       console.error(error);
       throw new InternalServerErrorException(error);
     }

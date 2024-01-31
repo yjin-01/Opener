@@ -17,6 +17,9 @@ export class UserSignupDto {
   @Length(8, 20)
     password: string;
 
+  @Length(8, 20)
+    passwordCheck: string;
+
   @Expose({ name: 'nickName' })
   @IsOptional()
     alias: string;
@@ -30,5 +33,9 @@ export class UserSignupDto {
 
   async encrypt(configService, fn) {
     this.password = await fn(configService, this.password);
+  }
+
+  isMatchedPassword(): boolean {
+    return this.password === this.passwordCheck;
   }
 }
