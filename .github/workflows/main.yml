@@ -4,7 +4,7 @@ name: Deploy NestJS Application
 # workflow_dispatch는 수동으로 workflow를 작동시키도록 할 수 있도록 합니다.
 on:
   push:
-    branches: [develop]
+    branches: [main]
   workflow_dispatch:
 
 env:
