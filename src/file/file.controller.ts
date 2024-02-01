@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -23,6 +24,7 @@ export class FileController {
   constructor(private readonly fileService: FileService) {}
 
   @Post('/upload')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '이미지 등록',
     description: '이미지를 AWS S3에 등록하여 URL을 생성합니다.',

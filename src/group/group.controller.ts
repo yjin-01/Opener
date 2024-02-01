@@ -14,6 +14,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { GroupCreateRequest } from './dto/group.create.request';
 import { GroupService } from './group.service';
@@ -28,6 +29,7 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Get('/solo')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹 + 솔로 목록 조회',
     description: '그룹 + 솔로 목록을 조회 가능합니다. [그룹명으로 검색 가능]',
@@ -76,6 +78,7 @@ export class GroupController {
 
   @UseInterceptors(GroupCreateResponseInterceptor)
   @Post()
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹 등록',
     description: '새로운 그룹을 등록합니다.',
