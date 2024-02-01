@@ -8,6 +8,7 @@ module.exports = {
             Server_PORT: 3000,
             NODE_ENV: 'dev',
           },
+          exec_mode: 'fork'
        },
     ],
  };
