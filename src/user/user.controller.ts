@@ -3,7 +3,6 @@ import {
   InternalServerErrorException,
   Post,
   Body,
-  UseInterceptors,
   BadRequestException,
   SetMetadata,
 } from '@nestjs/common';
@@ -14,10 +13,10 @@ import {
   ApiCreatedResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
+import { TokenDto } from 'src/authentication/dto/token.dto';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
 import { UserSignupRequest } from './swagger/user.signup.request';
-import { UserSignupResponseInterceptor } from './user.signup.response.interceptor';
 import { UserSignupResponse } from './swagger/user.signup.response';
 import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
 import { UserSignupDto } from './dto/user.signup.dto';
@@ -32,7 +31,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Public()
-  @UseInterceptors(UserSignupResponseInterceptor)
   @Post()
   @ApiOperation({
     summary: '회원 가입',
@@ -50,7 +48,7 @@ export class UserController {
   })
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
-  ): Promise<any | null> {
+  ): Promise<TokenDto | null> {
     try {
       return await this.userService.createUser(userSignupDto);
     } catch (error) {
