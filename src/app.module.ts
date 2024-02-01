@@ -10,6 +10,7 @@ import AuthenticationModule from './authentication/authentication.module';
 import GroupModule from './group/group.module';
 import ArtistModule from './artist/artist.module';
 import { FileModule } from './file/file.module';
+import ReviewModule from './review/review.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FileModule } from './file/file.module';
     ArtistModule,
     GroupModule,
     FileModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
