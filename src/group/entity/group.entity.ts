@@ -9,8 +9,8 @@ import {
 
 @Entity('groups')
 export class Group {
-  @PrimaryGeneratedColumn('uuid', { name: 'group_id' })
-    groupId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
   @Column({ name: 'group_name' })
     groupName: string;

@@ -11,6 +11,7 @@ import { InvalidException } from './exception/invalid.exception';
 export class UserService {
   constructor(
     private readonly configService: ConfigService,
+    @Inject('AuthenticationService')
     private readonly authenticationService: AuthenticationService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}

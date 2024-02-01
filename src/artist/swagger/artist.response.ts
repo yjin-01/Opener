@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Exclude()
 export class ArtistResponse {
@@ -8,7 +8,7 @@ export class ArtistResponse {
     default: '53bdc763-2036-4d',
   })
   @Expose()
-    artistId: string;
+    id: string;
 
   @ApiProperty({
     description: '등록 가입된 아티스트 이름',
@@ -31,18 +31,18 @@ export class ArtistResponse {
   @Expose()
     artistImage: string;
 
-  @ApiPropertyOptional({
-    description: '등록된 아티스트의 그룹 ID => 없거나 null인경우 솔로 입니다.',
-    default: '53bdc763-2036-4d',
-  })
-  @Expose()
-    groupId?: string;
+  // @ApiPropertyOptional({
+  //   description: '등록된 아티스트의 그룹 ID => 없거나 null인경우 솔로 입니다.',
+  //   default: '53bdc763-2036-4d',
+  // })
+  // @Expose()
+  // groupId?: string;
 
-  @ApiPropertyOptional({
-    description:
-      '등록된 아티스트의 그룹 이름 => 없거나 null인경우 솔로 입니다.',
-    default: 'test_group',
-  })
-  @Expose()
-    groupName?: string;
+  // @ApiPropertyOptional({
+  //   description:
+  //     '등록된 아티스트의 그룹 이름 => 없거나 null인경우 솔로 입니다.',
+  //   default: 'test_group',
+  // })
+  // @Expose()
+  // groupName?: string;
 }

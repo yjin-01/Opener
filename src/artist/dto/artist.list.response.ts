@@ -1,16 +1,9 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { ArtistResponse } from './artist.response';
+import { ArtistGroupListResponse } from '../swagger/artist.artistgrouplist.response';
 
 @Exclude()
 export class ArtistListResponse {
-  @ApiProperty({
-    description: '전체 개수',
-    default: 100,
-  })
-  @Expose()
-    totalCount: number;
-
   @ApiProperty({
     description: '페이지',
     default: 1,
@@ -26,9 +19,9 @@ export class ArtistListResponse {
     size: number;
 
   @ApiProperty({
-    description: '등록된 아티스트 리스트',
-    type: [ArtistResponse],
+    description: '등록된 아티스트&그룹 리스트',
+    type: [ArtistGroupListResponse],
   })
   @Expose()
-    artistList: ArtistResponse[];
+    artistAndGroupList: ArtistGroupListResponse[];
 }

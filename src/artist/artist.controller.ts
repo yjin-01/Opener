@@ -6,6 +6,8 @@ import {
   Get,
   Param,
   Query,
+  ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,41 +19,38 @@ import {
 } from '@nestjs/swagger';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
-import { ArtistResponse } from './dto/artist.response';
-import { GetArtistListRequest } from './swagger/artist.getlist.request';
+import { ArtistResponse } from './swagger/artist.response';
 import { ArtistListResponse } from './dto/artist.list.response';
+import { ArtistGroupListRequest } from './swagger/artist.artistgrouplist.request';
+import { Artist } from './entity/artist.entity';
+import { ArtistCreateResponseInterceptor } from './interceptor/artist.create.response.interceptor';
 
 @ApiTags('그룹&아티스트')
 @Controller('/artist')
 export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
-  @Get()
+  @Get('/group')
   @ApiOperation({
-    summary: '아티스트 목록 조회',
-    description: `등록된 모든 아티스트를 조회합니다. 
-      [**group_id, group_name이 null인 경우 솔로**]
+    summary: '그룹,아티스트(멤버 +  솔로) 목록 조회',
+    description: `등록된 모든 그룹,아티스트를 조회합니다. 
       [그룹명, 아티스트명으로 검색 가능]`,
   })
   @ApiQuery({
     name: 'getArtistListRequest',
-    type: GetArtistListRequest,
+    type: ArtistGroupListRequest,
   })
   @ApiCreatedResponse({
-    description: '등록된 아티스트 목록',
-    type: [ArtistListResponse],
+    description: '등록된 그룹, 아티스트(멤버 +  솔로) 목록',
+    type: ArtistListResponse,
   })
   async getArtistList(
-    @Query('category') category: string,
-      @Query('keyword') keyword: string,
-      @Query('page') page: number,
-      @Query('size') size: number,
+    @Query('keyword') keyword: string,
+      @Query('page', ParseIntPipe) page: number,
+      @Query('size', ParseIntPipe) size: number,
   ): Promise<ArtistListResponse | null> {
     try {
-      console.log(typeof page, page);
-      console.log(typeof size, size);
       return await this.artistService.getArtistList({
-        category,
         keyword,
         page,
         size,
@@ -78,7 +77,7 @@ export class ArtistController {
   })
   async getArtistListByGroup(
     @Param('id') groupId: string,
-  ): Promise<ArtistResponse[] | null> {
+  ): Promise<Artist[] | null> {
     try {
       return await this.artistService.getArtistListByGroup(groupId);
     } catch (error) {
@@ -87,6 +86,7 @@ export class ArtistController {
     }
   }
 
+  @UseInterceptors(ArtistCreateResponseInterceptor)
   @Post()
   @ApiOperation({
     summary: '아티스트 등록',
@@ -99,7 +99,7 @@ export class ArtistController {
   })
   async createArtist(
     @Body() artistCreateDto: ArtistCreateRequest,
-  ): Promise<ArtistResponse | null> {
+  ): Promise<Artist | null> {
     try {
       return await this.artistService.createArtist(artistCreateDto);
     } catch (error) {
