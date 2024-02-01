@@ -1,4 +1,6 @@
-import { IsUrl, IsString, IsDate } from 'class-validator';
+import {
+  IsUrl, IsString, IsDate, IsArray,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ArtistCreateRequest {
@@ -19,8 +21,8 @@ export class ArtistCreateRequest {
 
   @ApiPropertyOptional({
     description: '등록할 아티스트의 group_id',
-    default: '53bdc763-2036-4d',
+    default: ['53bdc763-2036-4d'],
   })
-  @IsString()
-    groupId: string;
+  @IsArray()
+    groups: string[];
 }

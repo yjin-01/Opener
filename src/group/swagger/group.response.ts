@@ -8,7 +8,7 @@ export class GroupResponse {
     default: '53bdc763-2036-4d',
   })
   @Expose()
-    groupId: string;
+    id: string;
 
   @ApiProperty({ description: '등록 가입된 그룹 이름', default: 'test_group' })
   @Expose()

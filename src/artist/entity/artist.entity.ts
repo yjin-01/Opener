@@ -9,8 +9,8 @@ import {
 
 @Entity('artists')
 export class Artist {
-  @PrimaryGeneratedColumn('uuid', { name: 'artist_id' })
-    artistId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
   @Column({ name: 'artist_name' })
     artistName: string;
@@ -20,6 +20,9 @@ export class Artist {
 
   @Column({ name: 'artist_image' })
     artistImage: string;
+
+  @Column({ name: 'is_solo' })
+    isSolo: boolean;
 
   @CreateDateColumn({
     name: 'created_at',
