@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { GroupRepository } from './group.repository';
-import { GroupResponse } from './dto/group.response';
 import { GroupCreateRequest } from './dto/group.create.request';
 import { GroupListResponse } from './dto/group.list.response';
+import { Group } from './entity/group.entity';
 
 @Injectable()
 export class GroupService {
   constructor(private readonly groupRepository: GroupRepository) {}
 
-  async getGroupList(
-    keyword: string,
-    page: number,
-    size: number,
-  ): Promise<GroupListResponse | null> {
+  async getGroupAndSoloList({
+    keyword,
+    page,
+    size,
+  }): Promise<GroupListResponse | null> {
     try {
-      const result = await this.groupRepository.findAllGroup(
+      const result = await this.groupRepository.findAllGroupAndSolo({
         keyword,
         page,
         size,
-      );
+      });
       return result;
     } catch (error) {
       console.error(error);
@@ -26,9 +26,7 @@ export class GroupService {
     }
   }
 
-  async createGroup(
-    groupInfo: GroupCreateRequest,
-  ): Promise<GroupResponse | null> {
+  async createGroup(groupInfo: GroupCreateRequest): Promise<Group | null> {
     try {
       const result = await this.groupRepository.createGroup(groupInfo);
       return result;

@@ -4,6 +4,8 @@ import {
   Post,
   Body,
   UseInterceptors,
+  BadRequestException,
+  SetMetadata,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,16 +16,22 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
-import { UserSignupRequest } from './dto/user.signup.request';
+import { UserSignupRequest } from './swagger/user.signup.request';
 import { UserSignupResponseInterceptor } from './user.signup.response.interceptor';
-import { UserSignupResponse } from './dto/user.signup.response';
+import { UserSignupResponse } from './swagger/user.signup.response';
 import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
+import { UserSignupDto } from './dto/user.signup.dto';
+import { ExistException } from './exception/exist.exception';
+import { InvalidException } from './exception/invalid.exception';
+
+const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('유저')
 @Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @UseInterceptors(UserSignupResponseInterceptor)
   @Post()
   @ApiOperation({
@@ -41,11 +49,17 @@ export class UserController {
     type: UserSignupBadRequest,
   })
   async signUp(
-    @Body(new UserValidationPipe()) userSignupRequest: UserSignupRequest,
+    @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
   ): Promise<any | null> {
     try {
-      return await this.userService.createUser(userSignupRequest);
+      return await this.userService.createUser(userSignupDto);
     } catch (error) {
+      if (error instanceof InvalidException) {
+        throw new BadRequestException(error);
+      }
+      if (error instanceof ExistException) {
+        throw new BadRequestException(error);
+      }
       console.error(error);
       throw new InternalServerErrorException(error);
     }
