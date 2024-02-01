@@ -23,6 +23,7 @@ export class UserService {
       }
       await user.encrypt(this.configService, enctypt);
       const newUser = await this.userRepositoryImple.create(user);
+
       return await this.authenticationService.generateTokenPair(newUser);
     } catch (error) {
       console.error(error);

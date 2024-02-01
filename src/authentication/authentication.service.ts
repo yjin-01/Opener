@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
 import { UserInformationApiFactory } from './api/userinformation.factory';
 import { TokenDto } from './dto/token.dto';
+import { NotExistException } from './exception/not.exist.exception';
 
 @Injectable()
 export class AuthenticationService {
@@ -16,14 +17,19 @@ export class AuthenticationService {
 
   async generateTokenPair(user): Promise<TokenDto | null> {
     try {
-      const accessToken = await this.jwtService.signAsync(
-        { userId: user.id, username: user.username },
-        { expiresIn: '1h', secret: this.configService.get('ACCESS_SECRET') },
-      );
-      const refreshToken = await this.jwtService.signAsync(
-        { userId: user.id, username: user.username },
-        { expiresIn: '30d', secret: this.configService.get('REFRESH_SECRET') },
-      );
+      const [accessToken, refreshToken] = await Promise.all([
+        this.jwtService.signAsync(
+          { userId: user.id, username: user.username },
+          { expiresIn: '1h', secret: this.configService.get('ACCESS_SECRET') },
+        ),
+        this.jwtService.signAsync(
+          { userId: user.id, username: user.username },
+          {
+            expiresIn: '30d',
+            secret: this.configService.get('REFRESH_SECRET'),
+          },
+        ),
+      ]);
       return { accessToken, refreshToken };
     } catch (err) {
       console.error(err);
@@ -48,11 +54,20 @@ export class AuthenticationService {
 
   async login(loginDto: LoginDto): Promise<any | null> {
     try {
+      // TODO 리팩터링
+      if (loginDto.isOpener()) {
+        const opener = await this.userRepository.findBy(loginDto);
+        if (!opener) {
+          throw new NotExistException('not exist user');
+        }
+        return await this.generateTokenPair(opener);
+      }
+
       const tokenInfo = await UserInformationApiFactory.getApi(loginDto).getTokenInfo();
       const user = await this.userRepository.findBy(tokenInfo);
 
       if (!user) {
-        throw new Error();
+        throw new NotExistException('not exist user');
       }
 
       return await this.generateTokenPair(user);
