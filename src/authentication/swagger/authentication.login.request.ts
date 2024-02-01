@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class AuthenticationLoginRequest {
   @ApiProperty({
@@ -20,11 +21,10 @@ export class AuthenticationLoginRequest {
   })
     signinMethod: string;
 
-  isKakao(): boolean {
-    return this.signinMethod === 'kakao';
-  }
-
-  isGoogle(): boolean {
-    return this.signinMethod === 'google';
-  }
+  @IsOptional()
+  @ApiProperty({
+    description: '계정 비밀번호',
+    default: '12345678',
+  })
+    password: string;
 }

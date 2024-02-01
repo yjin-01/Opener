@@ -8,6 +8,8 @@ export class LoginDto {
 
   signinMethod: string;
 
+  password: string;
+
   isKakao(): boolean {
     return this.signinMethod === 'kakao';
   }
