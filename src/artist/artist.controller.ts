@@ -16,6 +16,7 @@ import {
   ApiCreatedResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
@@ -31,6 +32,7 @@ export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
   @Get('/group')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹,아티스트(멤버 +  솔로) 목록 조회',
     description: `등록된 모든 그룹,아티스트를 조회합니다. 
@@ -62,6 +64,7 @@ export class ArtistController {
   }
 
   @Get(':id')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹별 아티스트 조회',
     description: '특정 그룹의 모든 아티스트를 조회합니다.',
@@ -88,6 +91,7 @@ export class ArtistController {
 
   @UseInterceptors(ArtistCreateResponseInterceptor)
   @Post()
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '아티스트 등록',
     description: '새로운 아티스트를 등록합니다.',
