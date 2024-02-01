@@ -1,46 +1,54 @@
+import * as sql from 'mysql2';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { GroupCreateRequest } from './dto/group.create.request';
 import { Group } from './entity/group.entity';
-import { GroupResponse } from './dto/group.response';
 import { GroupListResponse } from './dto/group.list.response';
 
 @Injectable()
 export class GroupRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findAllGroup(
-    keyword: string,
-    page: number,
-    size: number,
-  ): Promise<GroupListResponse | null> {
+  async findAllGroupAndSolo({
+    keyword,
+    page,
+    size,
+  }): Promise<GroupListResponse | null> {
     try {
       const itemsPerPage = size || 12; // 페이지당 아이템 수
       const currentPage = page || 1; // 현재 페이지
 
       const skip = (currentPage - 1) * itemsPerPage;
 
-      const query = this.entityManager
-        .getRepository(Group)
-        .createQueryBuilder('group')
-        .where('1=1');
+      let query = 'SELECT a.id, a.artist_name AS name, a.artist_image AS image, "solo" as type'
+        + ' FROM artists a'
+        + ' WHERE 1 = 1 '
+        + ' AND a.is_solo = 1';
 
       if (keyword) {
-        query.andWhere('group.group_name LIKE :groupName', {
-          groupName: `%${keyword}%`,
-        });
+        query += ` AND a.artist_name LIKE  ${sql.escape(`%${keyword}%`)}`;
       }
 
-      query.select(['group.group_id', 'group.group_name', 'group.group_image']);
+      query
+        += ' UNION'
+        + ' SELECT g.id , g.group_name , g.group_image, "group" as type'
+        + ' FROM `groups` g'
+        + ' LEFT JOIN artist_groups ag ON ag.group_id = g.id'
+        + ' LEFT JOIN artists a ON a.id = ag.artist_id'
+        + ' WHERE 1 = 1';
 
-      const totalCount = await query.getCount();
+      if (keyword) {
+        query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
+      }
 
-      query.orderBy('group.group_name', 'ASC').offset(skip).limit(itemsPerPage);
+      query += ` LIMIT ${itemsPerPage} OFFSET ${skip}`;
 
-      const groupList = await query.getRawMany();
+      const groupAndSoloList = await this.entityManager.query(query);
 
       return {
-        totalCount, page: currentPage, size: itemsPerPage, groupList,
+        page: currentPage,
+        size: itemsPerPage,
+        groupAndSoloList,
       };
     } catch (error) {
       console.error(error);
@@ -48,9 +56,7 @@ export class GroupRepository {
     }
   }
 
-  async createGroup(
-    groupInfo: GroupCreateRequest,
-  ): Promise<GroupResponse | null> {
+  async createGroup(groupInfo: GroupCreateRequest): Promise<Group | null> {
     try {
       const insertGroup = await this.entityManager
         .getRepository(Group)
@@ -64,10 +70,10 @@ export class GroupRepository {
         throw new InternalServerErrorException();
       }
 
-      const groupId = insertGroup.identifiers[0].groupId.slice(0, 16);
+      const { id } = insertGroup.identifiers[0];
 
       const newGroup = await this.entityManager.getRepository(Group).findOneBy({
-        groupId,
+        id,
       });
 
       return newGroup;

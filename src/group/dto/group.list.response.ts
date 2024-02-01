@@ -1,15 +1,15 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { GroupResponse } from './group.response';
+import { GroupSoloListResponse } from '../swagger/group.groupsololist.response';
 
 @Exclude()
 export class GroupListResponse {
-  @ApiProperty({
-    description: '전체 개수',
-    default: 100,
-  })
-  @Expose()
-    totalCount: number;
+  // @ApiProperty({
+  //   description: '전체 개수',
+  //   default: 100,
+  // })
+  // @Expose()
+  //   totalCount: number;
 
   @ApiProperty({
     description: '페이지',
@@ -27,8 +27,8 @@ export class GroupListResponse {
 
   @ApiProperty({
     description: '등록된 그룹 리스트',
-    type: [GroupResponse],
+    type: [GroupSoloListResponse],
   })
   @Expose()
-    groupList: GroupResponse[];
+    groupAndSoloList: GroupSoloListResponse[];
 }

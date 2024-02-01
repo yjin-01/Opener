@@ -9,8 +9,8 @@ import {
 
 @Entity('artist_groups')
 export class ArtistGroup {
-  @PrimaryGeneratedColumn('uuid', { name: 'artist_group_id' })
-    artistGroupId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
   @Column({ name: 'artist_id' })
     artistId: string;

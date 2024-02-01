@@ -1,106 +1,103 @@
+/* eslint-disable no-useless-concat */
+import * as sql from 'mysql2';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
-import { Group } from 'src/group/entity/group.entity';
 import { ArtistCreateRequest } from './dto/artist.create.request';
-import { ArtistResponse } from './dto/artist.response';
 import { Artist } from './entity/artist.entity';
 import { ArtistGroup } from './entity/artist_group.entity';
-import { GetArtistListRequest } from './swagger/artist.getlist.request';
 import { ArtistListResponse } from './dto/artist.list.response';
 
 @Injectable()
 export class ArtistRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findAllArtsit({
-    category,
+  // 그룹 + 아티스트(멤버 + 솔로)
+  async findAllArtsitAndGroup({
     keyword,
     page,
     size,
-  }: GetArtistListRequest): Promise<ArtistListResponse | null> {
-    const itemsPerPage = Number(size) || 12; // 페이지당 아이템 수
-    const currentPage = Number(page) || 1; // 현재 페이지
+  }): Promise<ArtistListResponse | null> {
+    const itemsPerPage = size || 12; // 페이지당 아이템 수
+    const currentPage = page || 1; // 현재 페이지
 
     const skip = (currentPage - 1) * itemsPerPage;
 
-    const query = this.entityManager
-      .getRepository(Artist)
-      .createQueryBuilder('artist')
-      .where('1=1');
+    let query = 'SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
+      + ' FROM artists a'
+      + ' LEFT JOIN artist_groups ag on ag.artist_id = a.id'
+      + ' LEFT JOIN `groups` g on g.id = ag.group_id'
+      + ' WHERE 1 = 1 ';
 
-    if (category === 'artist' && keyword) {
-      query.andWhere('artist.artist_name LIKE :artistName', {
-        artistName: `%${keyword}%`,
-      });
+    if (keyword) {
+      query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
     }
 
     query
-      .leftJoin(
-        ArtistGroup,
-        'artistGroup',
-        'artistGroup.artist_id = artist.artist_id',
-      )
-      .leftJoin(Group, 'group', 'group.group_id = artistGroup.group_id');
+      += ' UNION'
+      + ' SELECT g.id , g.group_name , g.group_image, "group" as type'
+      + ' FROM `groups` g'
+      + ' WHERE 1 = 1';
 
-    if (category === 'group' && keyword) {
-      query.andWhere('group.group_name LIKE :groupName', {
-        groupName: `%${keyword}%`,
-      });
+    if (keyword) {
+      query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
     }
 
-    query.select([
-      'artist.artist_id',
-      'artist.artist_name',
-      'artist.birthday',
-      'artist.artist_image',
-      'group.group_id',
-      'group.group_name',
-    ]);
+    query += ` LIMIT ${itemsPerPage} OFFSET ${skip}`;
 
-    const totalCount = await query.getCount();
-
-    query.orderBy('group.group_id', 'DESC').offset(skip).limit(itemsPerPage);
-
-    const artistList = await query.getRawMany();
+    const artistAndGroupList = await this.entityManager.query(query);
 
     return {
-      totalCount, page: currentPage, size: itemsPerPage, artistList,
+      page: currentPage,
+      size: itemsPerPage,
+      artistAndGroupList,
     };
   }
 
-  async findAllArtsitByGroup(
-    groupId: string,
-  ): Promise<ArtistResponse[] | null> {
+  async findAllArtsitByGroup(groupId: string): Promise<Artist[] | null> {
     const artistList = await this.entityManager
       .getRepository(Artist)
-      .createQueryBuilder('artist')
-      .leftJoin(
-        ArtistGroup,
-        'artistGroup',
-        'artistGroup.artist_id = artist.artist_id',
-      )
-      .where('artistGroup.group_id = :groupId', {
+      .createQueryBuilder('a')
+      .leftJoin(ArtistGroup, 'ag', 'ag.artist_id = a.artist_id')
+      .where('ag.group_id = :groupId', {
         groupId,
       })
-      .leftJoin(Group, 'group', 'group.group_id = artistGroup.group_id')
-      .select([
-        'artist.artist_id',
-        'artist.artist_name',
-        'artist.birthday',
-        'artist.artist_image',
-        'group.group_id',
-        'group.group_name',
-      ])
-
+      .select(['a.artist_id', 'a.artist_name', 'a.artist_image'])
       .getRawMany();
 
     return artistList;
   }
 
-  async createArtist(
-    artistInfo: ArtistCreateRequest,
-  ): Promise<ArtistResponse | null> {
+  async create(artistInfo: ArtistCreateRequest): Promise<Artist | null> {
     try {
+      //  그룹 정보가 없는 경우
+      if (!artistInfo.groups || artistInfo.groups.length === 0) {
+        const isSolo = true;
+        const insertInfo = { ...artistInfo, isSolo };
+
+        const insertArtist = await this.entityManager
+          .getRepository(Artist)
+          .createQueryBuilder()
+          .insert()
+          .into(Artist)
+          .values([insertInfo])
+          .execute();
+
+        if (insertArtist.raw === 0) {
+          throw new InternalServerErrorException();
+        }
+
+        const { id } = insertArtist.identifiers[0];
+
+        const newArtist = await this.entityManager
+          .getRepository(Artist)
+          .findOneBy({
+            id,
+          });
+
+        return newArtist;
+      }
+
+      // groups가 있는 경우
       const insertArtist = await this.entityManager
         .getRepository(Artist)
         .createQueryBuilder()
@@ -113,57 +110,29 @@ export class ArtistRepository {
         throw new InternalServerErrorException();
       }
 
-      const artistId = insertArtist.identifiers[0].artistId.slice(0, 16);
+      const { id } = insertArtist.identifiers[0];
 
-      // groupId가 없는 경우
-      if (!artistInfo.groupId) {
-        const newArtist = await this.entityManager
-          .getRepository(Artist)
-          .findOneBy({
-            artistId,
-          });
+      // group_artist테이블 저장
+      const groupDataToInsert = artistInfo.groups.map((el) => ({
+        groupId: el,
+        id,
+      }));
 
-        return newArtist;
-      }
-
-      // groupId가 있는 경우 group_artist테이블 저장
       await this.entityManager
         .getRepository(ArtistGroup)
         .createQueryBuilder()
         .insert()
         .into(ArtistGroup)
-        .values({
-          artistId,
-          groupId: artistInfo.groupId,
-        })
+        .values(groupDataToInsert)
         .execute();
 
-      const artist = await this.entityManager
+      const newArtist = await this.entityManager
         .getRepository(Artist)
-        .createQueryBuilder('artist')
-        .leftJoin(
-          ArtistGroup,
-          'artistGroup',
-          'artistGroup.artist_id = artist.artist_id',
-        )
-        .where('artistGroup.artist_id = :artistId', {
-          artistId,
-        })
-        .andWhere('artistGroup.group_id = :groupId', {
-          groupId: artistInfo.groupId,
-        })
-        .leftJoin(Group, 'group', 'group.group_id = artistGroup.group_id')
-        .select([
-          'artist.artist_id',
-          'artist.artist_name',
-          'artist.birthday',
-          'artist.artist_image',
-          'group.group_id',
-          'group.group_name',
-        ])
-        .getRawOne();
+        .findOneBy({
+          id,
+        });
 
-      return artist;
+      return newArtist;
     } catch (error) {
       console.error(error);
       throw error;
