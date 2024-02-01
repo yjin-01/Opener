@@ -16,6 +16,10 @@ export class LoginDto {
     return this.signinMethod === 'google';
   }
 
+  isOpener(): boolean {
+    return this.signinMethod === 'opener';
+  }
+
   getAccessToken(): string {
     return this.accessToken;
   }
