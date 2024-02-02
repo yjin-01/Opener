@@ -5,14 +5,21 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { IsEnum } from 'class-validator';
+import { User } from 'src/user/entity/user.entity';
 import { EventTypeEnum, SnsTypeEnum } from './event.enum';
+import { EventTarget } from './event_target.entity';
+import { EventTag } from './event_tag.entity';
+import { EventImage } from './event_image.entity';
 
 @Entity('events')
 export class Event {
-  @PrimaryGeneratedColumn('uuid', { name: 'event_id' })
-    eventId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
   @Column({ name: 'place_name' })
     placeName: string;
@@ -39,7 +46,8 @@ export class Event {
   @Column({ name: 'event_url' })
     eventUrl: string;
 
-  @Column({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, (user) => user.id)
     userId: string;
 
   @Column({ name: 'organizer_sns' })
@@ -84,4 +92,13 @@ export class Event {
     nullable: true,
   })
     deletedAt: Date;
+
+  @OneToMany(() => EventTarget, (eventTarget) => eventTarget.eventId)
+    targetArtists: EventTarget[];
+
+  @OneToMany(() => EventTag, (eventTag) => eventTag.eventId)
+    eventTags: EventTag[];
+
+  @OneToMany(() => EventImage, (eventEmage) => eventEmage.eventId)
+    eventImages: EventImage[];
 }
