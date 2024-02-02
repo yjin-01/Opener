@@ -1,21 +1,26 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
+import { Event } from './event.entity';
+import { Tag } from './tag.entity';
 
 @Entity('event_tags')
 export class EventTag {
-  @PrimaryGeneratedColumn('uuid', { name: 'event_tag_id' })
-    eventTagId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ name: 'tag_id' })
+  @JoinColumn({ name: 'tag_id' })
+  @ManyToOne(() => Tag, (tag) => tag.id)
     tagId: string;
 
-  @Column({ name: 'event_id' })
+  @JoinColumn({ name: 'event_id' })
+  @ManyToOne(() => Event, (event) => event.eventTags)
     eventId: string;
 
   @CreateDateColumn({

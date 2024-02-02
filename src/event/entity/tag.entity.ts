@@ -9,8 +9,8 @@ import {
 
 @Entity('tags')
 export class Tag {
-  @PrimaryGeneratedColumn('uuid', { name: 'tag_id' })
-    tagId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
   @Column({ name: 'tag_name' })
     tagName: string;

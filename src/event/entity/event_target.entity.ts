@@ -1,24 +1,31 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Artist } from 'src/artist/entity/artist.entity';
+import { Group } from 'src/group/entity/group.entity';
+import { Event } from './event.entity';
 
 @Entity('event_targets')
 export class EventTarget {
-  @PrimaryGeneratedColumn('uuid', { name: 'event_target_id' })
-    eventTargetId: string;
+  @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ name: 'event_id' })
+  @JoinColumn({ name: 'event_id' })
+  @ManyToOne(() => Event, (event) => event.targetArtists)
     eventId: string;
 
-  @Column({ name: 'artist_id' })
+  @JoinColumn({ name: 'artist_id' })
+  @ManyToOne(() => Artist, (artist) => artist.id)
     artistId: string;
 
-  @Column({ name: 'group_id' })
+  @JoinColumn({ name: 'group_id' })
+  @ManyToOne(() => Group, (group) => group.id)
     groupId: string;
 
   @CreateDateColumn({
