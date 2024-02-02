@@ -15,13 +15,13 @@ export class ReviewLike {
   @PrimaryGeneratedColumn('uuid')
     id: string;
 
-  @Column()
+  @Column({ name: 'user_id' })
     userId: string;
 
-  @Column()
+  @Column({ name: 'review_id' })
     reviewId: string;
 
-  @Column()
+  @Column({ name: 'is_like' })
     isLike: boolean;
 
   @CreateDateColumn({

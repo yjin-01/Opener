@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
+import { Review } from 'src/review/entity/review.entity';
 import { UserToArtist } from './user.artist.entity';
 // https://stackoverflow.com/questions/46589957/es6-modules-and-circular-dependency/46593566#46593566
 @Entity('users')
@@ -54,4 +55,7 @@ export class User {
 
   @OneToMany(() => UserToArtist, (userArtist) => userArtist.user)
     userArtists: UserToArtist[];
+
+  @OneToMany(() => Review, (review) => review.user)
+    reviews: Review[];
 }

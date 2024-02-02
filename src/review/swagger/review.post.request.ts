@@ -9,13 +9,13 @@ export class ReviewPostRequest {
 
   @ApiPropertyOptional({
     description: '리뷰 공개 여부',
-    default: 'true 또는 false',
+    default: true,
   })
     isPublic: boolean;
 
   @ApiProperty({
     description: '이벤트에 대한 평가',
-    default: 'true 또는 false',
+    default: true,
   })
     rating: boolean;
 
@@ -24,10 +24,10 @@ export class ReviewPostRequest {
 
   @ApiProperty({
     description: '리뷰에 첨부된 이미지 파일 url',
-    default: '[\'http::image1.co.kr\', \'http::image2.co.kr\']',
+    default: "['http::image1.co.kr', 'http::image2.co.kr']",
   })
     reviewImages: string[] | [];
 
-  @ApiPropertyOptional({ description: '리뷰 등록 약관 동의', default: 'true' })
+  @ApiPropertyOptional({ description: '리뷰 등록 약관 동의', default: true })
     isAgree: boolean;
 }
