@@ -6,7 +6,10 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from 'src/user/entity/user.entity';
 import { ReviewImage } from './review.imege.entity';
 import { ReviewLike } from './review.like.entity';
 
@@ -55,6 +58,10 @@ export class Review {
     nullable: true,
   })
     deletedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.reviews)
+  @JoinColumn({ name: 'user_id' })
+    user: User;
 
   @OneToMany(() => ReviewImage, (image) => image.review)
     reviewImages: ReviewImage[];
