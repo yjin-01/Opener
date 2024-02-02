@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AuthenticationLoginRequest {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '클라이언트에서 인증한 토큰',
     default:
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
@@ -20,11 +20,9 @@ export class AuthenticationLoginRequest {
   })
     signinMethod: string;
 
-  isKakao(): boolean {
-    return this.signinMethod === 'kakao';
-  }
-
-  isGoogle(): boolean {
-    return this.signinMethod === 'google';
-  }
+  @ApiPropertyOptional({
+    description: '계정 비밀번호',
+    default: '12345678',
+  })
+    password: string;
 }

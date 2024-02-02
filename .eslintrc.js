@@ -32,6 +32,7 @@ module.exports = {
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "class-methods-use-this": "off",
-        "import/no-cycle": "off"
+        "import/no-cycle": "off",
+        "max-classes-per-file": "off"
     }
 }
