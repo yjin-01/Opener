@@ -41,7 +41,7 @@ export class EventController {
   })
   @ApiCreatedResponse({
     description: '등록된 행사 목록',
-    type: [EventGetListRespone],
+    type: EventGetListRespone,
   })
   async getEventList(
     @Query() getEventListDto: EventGetListDto,
@@ -68,7 +68,7 @@ export class EventController {
   })
   @ApiCreatedResponse({
     description: '행사의 상세 내역',
-    type: [EventResponse],
+    type: EventResponse,
   })
   async getEventDetail(@Param('eventId') eventId: string): Promise<any | null> {
     try {
