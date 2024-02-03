@@ -33,6 +33,8 @@ import {
 } from './dto/review.list.request.dto';
 import { ReviewListResponse } from './swagger/review.list.response';
 import { ReviewLikeDto } from './dto/review.like.dto';
+import { ReviewLikeRequest } from './swagger/review.like.request';
+import { ReviewNotfoundResponse } from './swagger/review.notfound.response';
 
 @ApiTags('리뷰')
 @Controller('/reviews')
@@ -69,9 +71,9 @@ export class ReviewController {
     summary: '리뷰 좋아요',
     description: '리뷰에 좋아요를 누릅니다.',
   })
-  @ApiBody({ type: ReviewPostRequest })
-  @ApiCreatedResponse({
-    description: '리뷰에 대한 좋아요가 변경되면 반환합니다.',
+  @ApiBody({ type: ReviewLikeRequest })
+  @ApiOkResponse({
+    description: '리뷰 좋아요 수를 반환합니다.',
   })
   @ApiBadRequestResponse({
     description:
@@ -80,7 +82,7 @@ export class ReviewController {
   })
   @ApiNotFoundResponse({
     description: 'user 또는 review가 존재하지 않을 때 반환합니다',
-    type: ReviewPostBadRequest,
+    type: ReviewNotfoundResponse,
   })
   async likeReview(
     @Body(new ReviewValidationPipe()) reviewLikeDto: ReviewLikeDto,
