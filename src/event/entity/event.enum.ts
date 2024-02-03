@@ -9,3 +9,9 @@ export enum SnsTypeEnum {
   YOUTUBE = '유튜브',
   ETC = '기타',
 }
+
+export enum EventStatusEnum {
+  INSTARTAM = '예정',
+  TWITTER = '진행중',
+  YOUTUBE = '종료',
+}

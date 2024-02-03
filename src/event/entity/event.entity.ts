@@ -12,14 +12,17 @@ import {
 import { IsEnum } from 'class-validator';
 import { User } from 'src/user/entity/user.entity';
 import { EventTypeEnum, SnsTypeEnum } from './event.enum';
-import { EventTarget } from './event_target.entity';
-import { EventTag } from './event_tag.entity';
-import { EventImage } from './event_image.entity';
+import { EventTarget } from './event.target.entity';
+import { EventTag } from './event.tag.entity';
+import { EventImage } from './event.image.entity';
 
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn('uuid')
     id: string;
+
+  @Column()
+    sequence: number;
 
   @Column({ name: 'place_name' })
     placeName: string;
@@ -75,7 +78,6 @@ export class Event {
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
   })
     createdAt: Date;
 
@@ -92,6 +94,10 @@ export class Event {
     nullable: true,
   })
     deletedAt: Date;
+
+  // @JoinColumn({ name: 'user' })
+  // @ManyToOne(() => User, (user) => user.id)
+  // user: string;
 
   @OneToMany(() => EventTarget, (eventTarget) => eventTarget.eventId)
     targetArtists: EventTarget[];

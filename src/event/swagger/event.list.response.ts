@@ -1,9 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EventTypeEnum, SnsTypeEnum } from '../entity/event.enum';
-import { ArtistList } from './artistList';
-import { TagList } from './tagList';
+import { ArtistList } from './event.artist.list.response';
+import { TagList } from './event.tag.list.response';
 
-export class EventListResponse {
+export class EventList {
   @ApiPropertyOptional({
     description: '이벤트 ID',
     default: 'be14e489-1b39-422e-aef2-f9041ef9e375',
@@ -99,4 +99,24 @@ export class EventListResponse {
     description: '태그(특전)',
   })
     eventTags: TagList[];
+}
+
+export class EventGetListRespone {
+  @ApiProperty({
+    description: '페이지',
+    default: 1,
+  })
+    cursurId: number;
+
+  @ApiProperty({
+    description: '데이터 개수',
+    default: 12,
+  })
+    size: number;
+
+  @ApiPropertyOptional({
+    description: '이벤트 ID',
+    type: [EventList],
+  })
+    eventList: EventList[];
 }

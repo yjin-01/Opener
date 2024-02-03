@@ -2,9 +2,9 @@ import { Entity } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/user/entity/user.entity';
 import { EventTypeEnum, SnsTypeEnum } from '../entity/event.enum';
-import { ArtistList } from './artistList';
-import { TagList } from './tagList';
-import { EventImage } from '../entity/event_image.entity';
+import { ArtistList } from './event.artist.list.response';
+import { TagList } from './event.tag.list.response';
+import { EventImage } from '../entity/event.image.entity';
 
 @Entity('events')
 export class EventResponse {
