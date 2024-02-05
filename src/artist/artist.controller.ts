@@ -8,6 +8,7 @@ import {
   Query,
   ParseIntPipe,
   UseInterceptors,
+  SetMetadata,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiBearerAuth,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
@@ -25,6 +27,11 @@ import { ArtistListResponse } from './dto/artist.list.response';
 import { ArtistGroupListRequest } from './swagger/artist.artistgrouplist.request';
 import { Artist } from './entity/artist.entity';
 import { ArtistCreateResponseInterceptor } from './interceptor/artist.create.response.interceptor';
+import { ArtistRequestCreateRequest } from './dto/artistrequest.create.request';
+import { ArtistRequest } from './swagger/artistrequest.request';
+import { ArtistRequestBadRequest } from './swagger/artistrequest.create.response';
+
+const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('그룹&아티스트')
 @Controller('/artist')
@@ -106,6 +113,32 @@ export class ArtistController {
   ): Promise<Artist | null> {
     try {
       return await this.artistService.createArtist(artistCreateDto);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Public()
+  @Post('/request')
+  @ApiOperation({
+    summary: '아티스트 요청',
+    description: '회원 가입 전에 유저가 원하는 아티스트를 요청할 수 있습니다.',
+  })
+  @ApiBody({ type: ArtistRequest })
+  @ApiCreatedResponse({
+    description: '정상 등록된 아티스트에 대한 정보',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ArtistRequestBadRequest,
+  })
+  async createArtistRequest(
+    @Body() artistRequest: ArtistRequestCreateRequest,
+  ): Promise<number | null> {
+    try {
+      return await this.artistService.requestArtist(artistRequest);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);

@@ -6,6 +6,7 @@ import { ArtistCreateRequest } from './dto/artist.create.request';
 import { Artist } from './entity/artist.entity';
 import { ArtistGroup } from './entity/artist_group.entity';
 import { ArtistListResponse } from './dto/artist.list.response';
+import { ArtistRequest } from './entity/artist_request.entity';
 
 @Injectable()
 export class ArtistRepository {
@@ -138,6 +139,22 @@ export class ArtistRepository {
         });
 
       return newArtist;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async createArtistRequest(artistRequest): Promise<number | null> {
+    try {
+      const { identifiers } = await this.entityManager
+        .getRepository(ArtistRequest)
+        .createQueryBuilder()
+        .insert()
+        .into(ArtistRequest)
+        .values(artistRequest)
+        .execute();
+      return identifiers[0].id;
     } catch (error) {
       console.error(error);
       throw error;

@@ -45,4 +45,13 @@ export class ArtistService {
       throw error;
     }
   }
+
+  async requestArtist(userRequest): Promise<number | null> {
+    try {
+      return await this.artistRepository.createArtistRequest(userRequest);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }
