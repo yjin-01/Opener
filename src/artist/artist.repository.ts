@@ -61,7 +61,12 @@ export class ArtistRepository {
       .where('ag.group_id = :groupId', {
         groupId,
       })
-      .select(['a.id', 'a.artist_name', 'a.artist_image'])
+      .select([
+        'a.id AS id',
+        'a.artist_name AS artistName',
+        'a.birthday AS birthday',
+        'a.artist_image AS artistImage',
+      ])
       .getRawMany();
 
     return artistList;
