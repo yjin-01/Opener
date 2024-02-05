@@ -6,6 +6,7 @@ import { UserRepository } from './interface/user.repository';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { enctypt } from './utils/encrypt';
 import { InvalidException } from './exception/invalid.exception';
+import { UserNicknameResponse } from './dto/user.nickname.response';
 
 @Injectable()
 export class UserService {
@@ -29,6 +30,19 @@ export class UserService {
       const newUser = await this.userRepositoryImple.create(user);
 
       return await this.authenticationService.generateTokenPair(newUser);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async isDuplicatedNickname(search): Promise<UserNicknameResponse | null> {
+    try {
+      const result = await this.userRepositoryImple.findByNickname(search);
+      if (!result) {
+        return new UserNicknameResponse(false);
+      }
+      return new UserNicknameResponse(true);
     } catch (error) {
       console.error(error);
       throw error;
