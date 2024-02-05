@@ -146,7 +146,6 @@ export class ArtistRepository {
     }
   }
 
-
   async findArtistByUserId(userId: string) {
     const artistList = await this.entityManager
       .getRepository(UserToArtist)
@@ -155,7 +154,8 @@ export class ArtistRepository {
       .getMany();
 
     return artistList;
-    
+  }
+
   async createArtistRequest(artistRequest): Promise<number | null> {
     try {
       const { identifiers } = await this.entityManager
