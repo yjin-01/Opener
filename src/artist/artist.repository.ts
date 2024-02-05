@@ -57,11 +57,11 @@ export class ArtistRepository {
     const artistList = await this.entityManager
       .getRepository(Artist)
       .createQueryBuilder('a')
-      .leftJoin(ArtistGroup, 'ag', 'ag.artist_id = a.artist_id')
+      .leftJoin(ArtistGroup, 'ag', 'ag.artist_id = a.id')
       .where('ag.group_id = :groupId', {
         groupId,
       })
-      .select(['a.artist_id', 'a.artist_name', 'a.artist_image'])
+      .select(['a.id', 'a.artist_name', 'a.artist_image'])
       .getRawMany();
 
     return artistList;
