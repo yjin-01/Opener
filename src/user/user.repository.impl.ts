@@ -10,6 +10,17 @@ import { UserSignupDto } from './dto/user.signup.dto';
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async findByNickname(nickname: any): Promise<User | null> {
+    try {
+      return await this.entityManager
+        .getRepository(User)
+        .findOneBy({ alias: nickname });
+    } catch (err) {
+      console.error(err);
+      throw new Error('Method not implemented.');
+    }
+  }
+
   async findBy(user: any): Promise<User | null> {
     try {
       return await this.entityManager
