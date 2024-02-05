@@ -115,7 +115,7 @@ export class ArtistRepository {
       // group_artist테이블 저장
       const groupDataToInsert = artistInfo.groups.map((el) => ({
         groupId: el,
-        artist_id: id,
+        artistId: id,
       }));
 
       await this.entityManager
