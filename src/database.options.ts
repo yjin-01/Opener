@@ -11,6 +11,7 @@ export default (configService: ConfigService): TypeOrmModuleOptions => {
     password: configService.get('DATABASE_PASSWORD'),
     database: configService.get('DATABASE'),
     entities: [configService.get('ENTITIES')],
+    timezone: 'Asia/Seoul',
     logging: true,
     poolSize: Number(configService.get('POOL_SIZE')),
   } as TypeOrmModuleOptions;
