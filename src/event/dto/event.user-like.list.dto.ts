@@ -5,10 +5,6 @@ import { IsOptional } from 'class-validator';
 export class EventUserLikeListQueryDto {
   @Expose()
   @Type(() => String)
-    userId: string;
-
-  @Expose()
-  @Type(() => String)
   @IsOptional()
     status: string;
 
@@ -20,10 +16,10 @@ export class EventUserLikeListQueryDto {
   @Expose()
   @Type(() => Number)
   @IsOptional()
-  readonly size?: number = 12;
+    size: number = 12;
 
   @Expose()
   @Type(() => Number)
   @IsOptional()
-  readonly cursorId?: number = '' as any;
+    cursorId: BigInt | null;
 }

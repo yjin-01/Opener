@@ -1,6 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import {
-  IsString, IsDate, IsInt, IsArray,
+  IsString, IsDate, IsArray, IsOptional,
 } from 'class-validator';
 
 @Exclude()
@@ -32,15 +32,20 @@ export class EventListQueryDto {
 
   @Expose()
   @IsArray()
-    tags: string[];
+    tags: string;
+
+  @Expose()
+  @Type(() => String)
+  @IsString()
+    sort: string;
 
   @Expose()
   @Type(() => Number)
-  @IsInt()
-    page: number;
+  @IsOptional()
+    page: number = 1;
 
   @Expose()
   @Type(() => Number)
-  @IsInt()
-    size: number;
+  @IsOptional()
+    size: number = 12;
 }

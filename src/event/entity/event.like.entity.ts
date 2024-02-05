@@ -5,7 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
+import { Event } from './event.entity';
 
 @Entity('event_likes')
 export class EventLike {
@@ -34,4 +37,8 @@ export class EventLike {
     nullable: true,
   })
     deletedAt: Date;
+
+  @JoinColumn({ name: 'event_id' })
+  @ManyToOne(() => Event, (event) => event.eventLikes)
+    event: Event;
 }

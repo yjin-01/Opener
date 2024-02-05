@@ -2,6 +2,7 @@
 import * as sql from 'mysql2';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
+import { UserToArtist } from 'src/user/entity/user.artist.entity';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { Artist } from './entity/artist.entity';
 import { ArtistGroup } from './entity/artist_group.entity';
@@ -137,5 +138,15 @@ export class ArtistRepository {
       console.error(error);
       throw error;
     }
+  }
+
+  async findArtistByUserId(userId: string) {
+    const artistList = await this.entityManager
+      .getRepository(UserToArtist)
+      .createQueryBuilder('ua')
+      .where('ua.user_id = :userId', { userId })
+      .getMany();
+
+    return artistList;
   }
 }
