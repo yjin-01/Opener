@@ -18,10 +18,14 @@ export class UserService {
 
   async createUser(user: UserSignupDto): Promise<TokenDto | null> {
     try {
-      if (!user.isMatchedPassword()) {
-        throw new InvalidException('not matched password');
+      if (user.isOpener() && !user.isValidPassword()) {
+        throw new InvalidException('invalid password');
       }
-      await user.encrypt(this.configService, enctypt);
+
+      if (user.isOpener() && user.isValidPassword()) {
+        await user.encrypt(this.configService, enctypt);
+      }
+
       const newUser = await this.userRepositoryImple.create(user);
 
       return await this.authenticationService.generateTokenPair(newUser);
