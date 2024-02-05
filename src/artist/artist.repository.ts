@@ -146,6 +146,7 @@ export class ArtistRepository {
     }
   }
 
+
   async findArtistByUserId(userId: string) {
     const artistList = await this.entityManager
       .getRepository(UserToArtist)
