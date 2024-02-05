@@ -7,6 +7,7 @@ import { ArtistCreateRequest } from './dto/artist.create.request';
 import { Artist } from './entity/artist.entity';
 import { ArtistGroup } from './entity/artist_group.entity';
 import { ArtistListResponse } from './dto/artist.list.response';
+import { ArtistRequest } from './entity/artist_request.entity';
 
 @Injectable()
 export class ArtistRepository {
@@ -58,11 +59,16 @@ export class ArtistRepository {
     const artistList = await this.entityManager
       .getRepository(Artist)
       .createQueryBuilder('a')
-      .leftJoin(ArtistGroup, 'ag', 'ag.artist_id = a.artist_id')
+      .leftJoin(ArtistGroup, 'ag', 'ag.artist_id = a.id')
       .where('ag.group_id = :groupId', {
         groupId,
       })
-      .select(['a.artist_id', 'a.artist_name', 'a.artist_image'])
+      .select([
+        'a.id AS id',
+        'a.artist_name AS artistName',
+        'a.birthday AS birthday',
+        'a.artist_image AS artistImage',
+      ])
       .getRawMany();
 
     return artistList;
@@ -116,7 +122,7 @@ export class ArtistRepository {
       // group_artist테이블 저장
       const groupDataToInsert = artistInfo.groups.map((el) => ({
         groupId: el,
-        id,
+        artistId: id,
       }));
 
       await this.entityManager
@@ -148,5 +154,20 @@ export class ArtistRepository {
       .getMany();
 
     return artistList;
+    
+  async createArtistRequest(artistRequest): Promise<number | null> {
+    try {
+      const { identifiers } = await this.entityManager
+        .getRepository(ArtistRequest)
+        .createQueryBuilder()
+        .insert()
+        .into(ArtistRequest)
+        .values(artistRequest)
+        .execute();
+      return identifiers[0].id;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }

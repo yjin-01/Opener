@@ -1,12 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
+import { User } from 'src/user/entity/user.entity';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { Review } from './entity/review.entity';
 import { ReviewRepository } from './review.repository';
 import { ReviewImage } from './entity/review.imege.entity';
+import { ReviewLike } from './entity/review.like.entity';
 
 @Injectable()
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async updateLike(reviewLikeDto: any): Promise<number | null> {
+    try {
+      const [user, review] = await Promise.all([
+        this.entityManager.findOneBy(User, { id: reviewLikeDto.userId }),
+        this.entityManager.findOneBy(Review, { id: reviewLikeDto.reviewId }),
+      ]);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      if (!review) {
+        throw new NotExistException('not exist review');
+      }
+
+      const reviewLike = await this.entityManager
+        .getRepository(ReviewLike)
+        .findOneBy({
+          reviewId: reviewLikeDto.reviewId,
+          userId: reviewLikeDto.userId,
+        });
+      if (!reviewLike) {
+        await this.entityManager
+          .getRepository(ReviewLike)
+          .createQueryBuilder()
+          .insert()
+          .into(ReviewLike)
+          .values(reviewLikeDto)
+          .execute();
+      } else {
+        await this.entityManager
+          .getRepository(ReviewLike)
+          .update(
+            { userId: reviewLikeDto.userId, reviewId: reviewLikeDto.reviewId },
+            { isLike: reviewLikeDto.isLike },
+          );
+      }
+      return await this.entityManager
+        .getRepository(ReviewLike)
+        .countBy({ isLike: true, reviewId: reviewLikeDto.reviewId });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
 
   async find(reviewParamDto, cursor): Promise<Review[] | []> {
     try {

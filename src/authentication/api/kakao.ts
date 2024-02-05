@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { request } from 'node:https';
 import { UserInformationApi } from './interface/userinformation.api';
 import { LoginDto } from '../dto/login.dto';
+import { InvalidEmailException } from './exception/InvalidEmailException';
 
 @Injectable()
 export class KakaoApi implements UserInformationApi {
@@ -41,8 +42,9 @@ export class KakaoApi implements UserInformationApi {
   }
 
   isValid(userInfo): void {
+    console.log(userInfo);
     if (!userInfo?.kakao_account?.is_email_verified) {
-      throw new Error();
+      throw new InvalidEmailException('kakao account not verified');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { IsOptional, IsEmail, Length } from 'class-validator';
+import { IsOptional, IsEmail } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { UserToArtist } from '../entity/user.artist.entity';
 
@@ -14,10 +14,10 @@ export class UserSignupDto {
   @IsEmail()
     email: string;
 
-  @Length(8, 20)
+  @IsOptional()
     password: string;
 
-  @Length(8, 20)
+  @IsOptional()
     passwordCheck: string;
 
   @Expose({ name: 'nickName' })
@@ -35,7 +35,11 @@ export class UserSignupDto {
     this.password = await fn(configService, this.password);
   }
 
-  isMatchedPassword(): boolean {
-    return this.password === this.passwordCheck;
+  isValidPassword(): boolean {
+    return this.password.length > 7 && this.password === this.passwordCheck;
+  }
+
+  isOpener() {
+    return this.signupMethod === 'opener';
   }
 }

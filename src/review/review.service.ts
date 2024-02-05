@@ -39,4 +39,13 @@ export class ReviewService {
       throw error;
     }
   }
+
+  async likeReview(reviewLikeDto): Promise<number | null> {
+    try {
+      return await this.reviewRepository.updateLike(reviewLikeDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

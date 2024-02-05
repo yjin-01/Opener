@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   InternalServerErrorException,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -16,7 +17,9 @@ import {
   ApiParam,
   ApiQuery,
   ApiOkResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { ReviewService } from './review.service';
 import { ReviewPostRequest } from './swagger/review.post.request';
 import { ReviewPostBadRequest } from './swagger/review.post.badrequest';
@@ -29,6 +32,9 @@ import {
   ReviewListRequestQueryDto,
 } from './dto/review.list.request.dto';
 import { ReviewListResponse } from './swagger/review.list.response';
+import { ReviewLikeDto } from './dto/review.like.dto';
+import { ReviewLikeRequest } from './swagger/review.like.request';
+import { ReviewNotfoundResponse } from './swagger/review.notfound.response';
 
 @ApiTags('리뷰')
 @Controller('/reviews')
@@ -56,6 +62,37 @@ export class ReviewController {
       return await this.reviewService.createReview(reviewPostDto);
     } catch (err) {
       console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  @Post('/:reviewId/like')
+  @ApiOperation({
+    summary: '리뷰 좋아요',
+    description: '리뷰에 좋아요를 누릅니다.',
+  })
+  @ApiBody({ type: ReviewLikeRequest })
+  @ApiOkResponse({
+    description: '리뷰 좋아요 수를 반환합니다.',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewPostBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: 'user 또는 review가 존재하지 않을 때 반환합니다',
+    type: ReviewNotfoundResponse,
+  })
+  async likeReview(
+    @Body(new ReviewValidationPipe()) reviewLikeDto: ReviewLikeDto,
+  ): Promise<number | null> {
+    try {
+      return await this.reviewService.likeReview(reviewLikeDto);
+    } catch (err) {
+      if (err instanceof NotExistException) {
+        throw new NotFoundException(err);
+      }
       throw new InternalServerErrorException(err);
     }
   }
