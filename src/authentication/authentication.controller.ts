@@ -6,6 +6,7 @@ import {
   Body,
   SetMetadata,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -13,6 +14,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiBadRequestResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { AuthenticationService } from './authentication.service';
@@ -24,6 +26,8 @@ import { AuthenticationValidationPipe } from './authentication.validtion.pipe';
 import { AuthenticationGenerateTokenRequest } from './swagger/authentication.token.request';
 import { TokenDto } from './dto/token.dto';
 import { InvalidEmailException } from './api/exception/InvalidEmailException';
+import { NotExistException } from './exception/not.exist.exception';
+import { AuthenticationLoginNotFound } from './swagger/authentication.login.notfound';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -48,6 +52,10 @@ export class AuthenticationController {
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: AuthenticationLoginBadrequest,
   })
+  @ApiNotFoundResponse({
+    description: '로그인하는 계정이 존재하지 않을 때 반환합니다',
+    type: AuthenticationLoginNotFound,
+  })
   async signin(
     @Body(new AuthenticationValidationPipe()) loginDto: LoginDto,
   ): Promise<null> {
@@ -56,6 +64,8 @@ export class AuthenticationController {
     } catch (err) {
       if (err instanceof InvalidEmailException) {
         throw new BadRequestException(err);
+      } else if (err instanceof NotExistException) {
+        throw new NotFoundException(err);
       }
       throw new InternalServerErrorException(err);
     }
