@@ -8,6 +8,7 @@ import {
   Param,
   SetMetadata,
   UseInterceptors,
+  Put,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -37,6 +38,7 @@ import {
   EventListByPageResponseInterceptor,
   EventListResponseInterceptor,
 } from './interceptor/event.list.response.interceptor';
+import { EventUpdateRequest } from './dto/event.update.request';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -295,10 +297,37 @@ export class EventController {
   })
   @Post()
   async createEvent(
-    @Body() eventCreateRequest: EventCreateRequest,
+    @Body(new EventValidationPipe()) eventCreateRequest: EventCreateRequest,
   ): Promise<EventCreateResponse | null> {
     try {
       return await this.evnetService.createEvent(eventCreateRequest);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '행사 수정',
+    description: ' 행사 수정 API.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    description: '이벤트의 Id',
+  })
+  @ApiBody({ type: EventCreateRequest })
+  @ApiOkResponse({
+    description: '수정 등록된 행사에 대한 정보',
+    type: Event,
+  })
+  @Put(':eventId')
+  async updateEvent(
+    @Param('eventId') eventId: string,
+      @Body(new EventValidationPipe()) eventUpdateRequest: EventUpdateRequest,
+  ): Promise<Event | null> {
+    try {
+      return await this.evnetService.updateEvent(eventId, eventUpdateRequest);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
