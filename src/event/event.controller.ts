@@ -295,7 +295,7 @@ export class EventController {
   })
   @Post()
   async createEvent(
-    @Body(new EventValidationPipe()) eventCreateRequest: EventCreateRequest,
+    @Body() eventCreateRequest: EventCreateRequest,
   ): Promise<EventCreateResponse | null> {
     try {
       return await this.evnetService.createEvent(eventCreateRequest);
