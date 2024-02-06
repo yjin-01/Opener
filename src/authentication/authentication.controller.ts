@@ -32,7 +32,7 @@ import { AuthenticationLoginNotFound } from './swagger/authentication.login.notf
 const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('인증')
-@Controller('/authentication')
+@Controller('/auth')
 export class AuthenticationController {
   constructor(private readonly authenticationService: AuthenticationService) {}
 
