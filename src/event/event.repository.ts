@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { Artist } from 'src/artist/entity/artist.entity';
 import { Group } from 'src/group/entity/group.entity';
@@ -13,6 +17,7 @@ import { Tag } from './entity/tag.entity';
 import { EventLike } from './entity/event.like.entity';
 import { EventUserLikeListQueryDto } from './dto/event.user-like.list.dto';
 import { EventListByPageResponseDto } from './dto/event.list.response.dto';
+import { EventUpdateRequest } from './dto/event.update.request';
 
 @Injectable()
 export class EventRepository {
@@ -153,7 +158,7 @@ export class EventRepository {
       return { totalCount, eventList };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -246,7 +251,7 @@ export class EventRepository {
       };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -296,7 +301,7 @@ export class EventRepository {
       return eventList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -336,7 +341,7 @@ export class EventRepository {
       return eventList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -353,7 +358,7 @@ export class EventRepository {
       return imageList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -378,7 +383,7 @@ export class EventRepository {
       return artistList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -399,7 +404,7 @@ export class EventRepository {
       return artistList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -421,7 +426,7 @@ export class EventRepository {
       return tagList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -439,12 +444,12 @@ export class EventRepository {
       return tagList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
   // 이벤트 상세 조회
-  async findOneEventByEventId({ eventId }) {
+  async findOneEventByEventId(eventId: string) {
     try {
       const event = await this.entityManager.getRepository(Event).findOne({
         where: { id: eventId },
@@ -464,7 +469,7 @@ export class EventRepository {
       return event;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -537,7 +542,7 @@ export class EventRepository {
       return eventList;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 
@@ -561,7 +566,7 @@ export class EventRepository {
             .execute();
 
           if (insertEvent.raw === 0) {
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException('event save fail');
           }
 
           const { id } = insertEvent.identifiers[0];
@@ -630,7 +635,109 @@ export class EventRepository {
       return { eventId: result };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
+    }
+  }
+
+  async updateEvent(
+    eventId: string,
+    eventUpdateRequest: EventUpdateRequest,
+  ): Promise<Event | null> {
+    try {
+      const {
+        groupId, artists, tags, eventImages, ...rest
+      } = eventUpdateRequest;
+
+      const originEvent = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventId } });
+
+      if (!originEvent) throw new NotFoundException('Not exist Event');
+
+      const result = await this.entityManager.transaction(
+        async (transactioManager) => {
+          // 1. 행사 수정
+          await transactioManager.getRepository(Event).save({
+            ...originEvent,
+            ...rest,
+          });
+
+          await transactioManager
+            .getRepository(EventTarget)
+            .delete({ eventId });
+
+          const artistDataToInsert = artists.map((el) => ({
+            groupId,
+            artistId: el,
+            eventId,
+          }));
+
+          // 2. 행사 참여 아티스트 저장
+          await transactioManager
+            .getRepository(EventTarget)
+            .createQueryBuilder()
+            .insert()
+            .into(EventTarget)
+            .values(artistDataToInsert)
+            .execute();
+
+          // 3. 태그 정보가 있는 경우 저장
+          if (tags && tags.length !== 0) {
+            await transactioManager.getRepository(EventTag).delete({ eventId });
+
+            const tagDataToInsert = tags.map((el) => ({
+              tagId: el,
+              eventId,
+            }));
+
+            await transactioManager
+              .getRepository(EventTag)
+              .createQueryBuilder()
+              .insert()
+              .into(EventTag)
+              .values(tagDataToInsert)
+              .execute();
+          }
+
+          // 4. 행사 이미지 정보가 있는 경우 저장
+          if (eventImages && eventImages.length !== 0) {
+            await transactioManager
+              .getRepository(EventImage)
+              .delete({ eventId });
+
+            const imageDataToInsert = eventImages.map((el, idx) => {
+              if (idx === 0) {
+                return {
+                  eventId,
+                  imageUrl: el,
+                  isMain: true,
+                };
+              }
+              return {
+                eventId,
+                imageUrl: el,
+                isMain: false,
+              };
+            });
+
+            await transactioManager
+              .getRepository(EventImage)
+              .createQueryBuilder()
+              .insert()
+              .into(EventImage)
+              .values(imageDataToInsert)
+              .execute();
+          }
+          const event = await this.findOneEventByEventId(eventId);
+
+          return event;
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
@@ -659,7 +766,7 @@ export class EventRepository {
       return true;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 }

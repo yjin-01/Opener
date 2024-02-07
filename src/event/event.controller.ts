@@ -8,6 +8,8 @@ import {
   Param,
   SetMetadata,
   UseInterceptors,
+  Put,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -18,6 +20,8 @@ import {
   ApiParam,
   ApiTags,
   ApiOkResponse,
+  ApiNotFoundResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import { EventService } from './event.service';
 import { EventCreateRequest } from './dto/event.create.request';
@@ -37,6 +41,9 @@ import {
   EventListByPageResponseInterceptor,
   EventListResponseInterceptor,
 } from './interceptor/event.list.response.interceptor';
+import { EventUpdateRequest } from './dto/event.update.request';
+import { EventInternalServerResponse } from './swagger/event.servererror.response';
+import { EventNotfoundResponse } from './swagger/event.notfound.response';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -293,15 +300,58 @@ export class EventController {
     description: '정상 등록된 행사에 대한 정보',
     type: EventCreateResponse,
   })
+  @ApiInternalServerErrorResponse({
+    description: '저장 실패한 경우',
+    type: EventInternalServerResponse,
+  })
   @Post()
   async createEvent(
-    @Body() eventCreateRequest: EventCreateRequest,
+    @Body(new EventValidationPipe()) eventCreateRequest: EventCreateRequest,
   ): Promise<EventCreateResponse | null> {
     try {
       return await this.evnetService.createEvent(eventCreateRequest);
     } catch (error) {
+      if (error instanceof InternalServerErrorException) {
+        console.error('error', error);
+        throw error;
+      }
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
+    }
+  }
+
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '행사 수정',
+    description: ' 행사 수정 API.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    description: '이벤트의 Id',
+  })
+  @ApiBody({ type: EventCreateRequest })
+  @ApiOkResponse({
+    description: '수정 등록된 행사에 대한 정보',
+    type: Event,
+  })
+  @ApiNotFoundResponse({
+    description: '존재하지 않는 event Id인 경우',
+    type: EventNotfoundResponse,
+  })
+  @Put(':eventId')
+  async updateEvent(
+    @Param('eventId') eventId: string,
+      @Body(new EventValidationPipe()) eventUpdateRequest: EventUpdateRequest,
+  ): Promise<Event | null> {
+    try {
+      return await this.evnetService.updateEvent(eventId, eventUpdateRequest);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException();
     }
   }
 
