@@ -17,6 +17,7 @@ import {
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { JsonWebTokenError } from '@nestjs/jwt';
+import { InvalidException } from 'src/user/exception/invalid.exception';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
@@ -62,7 +63,10 @@ export class AuthenticationController {
     try {
       return await this.authenticationService.login(loginDto);
     } catch (err) {
-      if (err instanceof InvalidEmailException) {
+      if (
+        err instanceof InvalidEmailException
+        || err instanceof InvalidException
+      ) {
         throw new BadRequestException(err);
       } else if (err instanceof NotExistException) {
         throw new NotFoundException(err);

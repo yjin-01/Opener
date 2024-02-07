@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { request } from 'node:https';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { InvalidException } from 'src/user/exception/invalid.exception';
 import { UserInformationApi } from './interface/userinformation.api';
 import { LoginDto } from '../dto/login.dto';
 import { InvalidEmailException } from './exception/InvalidEmailException';
@@ -30,20 +31,24 @@ export class KakaoApi implements UserInformationApi {
   }
 
   async requestToken(): Promise<any | null> {
-    const requestUrl = 'https://kauth.kakao.com/oauth/token';
+    try {
+      const requestUrl = 'https://kauth.kakao.com/oauth/token';
 
-    const data = {};
-    const response = await axios.post(requestUrl, data, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      params: {
-        grant_type: 'authorization_code',
-        client_id: this.configService.get('KAKAO_CLIENT'),
-        code: this.loginDto.code,
-      },
-    });
-    return response.data;
+      const data = {};
+      const response = await axios.post(requestUrl, data, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        params: {
+          grant_type: 'authorization_code',
+          client_id: this.configService.get('KAKAO_CLIENT'),
+          code: this.loginDto.code,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new InvalidException(error);
+    }
   }
 
   async getUser(token) {
