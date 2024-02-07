@@ -51,13 +51,15 @@ export class UserRepositoryImple implements UserRepository {
           .values([user])
           .execute();
 
-        await transactioManager
-          .getRepository(UserToArtist)
-          .createQueryBuilder('ua')
-          .insert()
-          .into(UserToArtist)
-          .values(user.extractArtists(identifiers[0].id))
-          .execute();
+        if (user.hasArtists()) {
+          await transactioManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder('ua')
+            .insert()
+            .into(UserToArtist)
+            .values(user.extractArtists(identifiers[0].id))
+            .execute();
+        }
 
         return transactioManager
           .getRepository(User)

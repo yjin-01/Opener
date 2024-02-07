@@ -12,7 +12,7 @@ export class GoogleApi implements UserInformationApi {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'www.googleapis.com',
-        path: `/oauth2/v1/userinfo?access_token=${this.loginDto.getAccessToken()}`,
+        path: `/oauth2/v1/userinfo?access_token=${this.loginDto.getCode()}`,
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
