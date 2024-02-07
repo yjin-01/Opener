@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ArtistRepository } from 'src/artist/artist.repository';
 import { EventRepository } from './event.repository';
 import { EventCreateRequest } from './dto/event.create.request';
@@ -616,7 +616,7 @@ export class EventService {
       return event;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error);
+      throw error;
     }
   }
 

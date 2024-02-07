@@ -566,7 +566,7 @@ export class EventRepository {
             .execute();
 
           if (insertEvent.raw === 0) {
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException('event save fail');
           }
 
           const { id } = insertEvent.identifiers[0];
@@ -657,16 +657,10 @@ export class EventRepository {
       const result = await this.entityManager.transaction(
         async (transactioManager) => {
           // 1. 행사 수정
-          const updateEvent = await transactioManager
-            .getRepository(Event)
-            .save({
-              ...originEvent,
-              ...rest,
-            });
-
-          if (!updateEvent) {
-            throw new InternalServerErrorException();
-          }
+          await transactioManager.getRepository(Event).save({
+            ...originEvent,
+            ...rest,
+          });
 
           await transactioManager
             .getRepository(EventTarget)
