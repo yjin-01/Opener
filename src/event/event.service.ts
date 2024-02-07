@@ -9,6 +9,7 @@ import {
   EventListByPageResponseDto,
 } from './dto/event.list.response.dto';
 import { EventListQueryDto } from './dto/event.list.dto';
+import { EventUpdateRequest } from './dto/event.update.request';
 
 @Injectable()
 export class EventService {
@@ -474,7 +475,7 @@ export class EventService {
   }
 
   async getEventDetail({ eventId }) {
-    const event = await this.eventRepository.findOneEventByEventId({ eventId });
+    const event = await this.eventRepository.findOneEventByEventId(eventId);
 
     if (!event) {
       return null;
@@ -579,6 +580,40 @@ export class EventService {
       const result = await this.eventRepository.createEvent(eventInfo);
 
       return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updateEvent(eventId: string, eventUpdateRequest: EventUpdateRequest) {
+    try {
+      const event = await this.eventRepository.updateEvent(
+        eventId,
+        eventUpdateRequest,
+      );
+
+      if (!event) {
+        return null;
+      }
+
+      const targetEventIds = [eventId];
+
+      // 이벤트에 참여하는 아티스트 조회
+      const artistList = await this.eventRepository.findEventTargetByEventId({
+        targetEventIds,
+      });
+
+      // 이벤트에 해당하는 태그(특전) 조회
+      const tagList = await this.eventRepository.findEventTagByEventId({
+        targetEventIds,
+      });
+
+      event.targetArtists = artistList;
+
+      event.eventTags = tagList;
+
+      return event;
     } catch (error) {
       console.error(error);
       throw error;

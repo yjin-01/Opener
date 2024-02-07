@@ -1,12 +1,17 @@
 import {
-  IsString, IsEnum, IsBoolean, IsArray,
+  IsString,
+  IsEnum,
+  IsBoolean,
+  IsArray,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EventTypeEnum, SnsTypeEnum } from '../entity/event.enum';
 
-export class EventCreateRequest {
+export class EventUpdateRequest {
   @ApiProperty({ description: '행사 장소명', default: '127 Day 기념 카페' })
   @IsString()
+  @IsOptional()
     placeName: string;
 
   @ApiProperty({
@@ -15,6 +20,7 @@ export class EventCreateRequest {
     type: 'enum',
     enum: EventTypeEnum,
   })
+  @IsOptional()
   @IsEnum(EventTypeEnum)
     eventType: EventTypeEnum;
 
@@ -22,6 +28,7 @@ export class EventCreateRequest {
     description: '행사 참여자가 그룹인 경우 groupId',
     default: 'e073b452-9edd-41',
   })
+  @IsOptional()
   @IsString()
     groupId: string;
 
@@ -29,6 +36,7 @@ export class EventCreateRequest {
     description: '행사 참여자 artistId 리스트',
     default: ['1fab0958-dafc-48', '454d54d7-a6c8-4c'],
   })
+  @IsOptional()
   @IsArray()
     artists: string[];
 
@@ -36,20 +44,23 @@ export class EventCreateRequest {
     description: '행사 시작일',
     default: '2024-01-24',
   })
-  // @IsDate()
+  @IsOptional()
+  //   @IsDate()
     startDate: Date;
 
   @ApiProperty({
     description: '행사 종료일',
     default: '2024-01-31',
   })
-  // @IsDate()
+  @IsOptional()
+  //   @IsDate()
     endDate: Date;
 
   @ApiProperty({
     description: '행사 주소',
     default: '서울시 마포구 ~~',
   })
+  @IsOptional()
   @IsString()
     address: string;
 
@@ -57,20 +68,15 @@ export class EventCreateRequest {
     description: '행사 상세 주소',
     default: '',
   })
+  @IsOptional()
   @IsString()
     addressDetail: string;
-
-  @ApiProperty({
-    description: '행사를 등록하는 유저의 아이디',
-    default: 'a1eef6ad-3847-46',
-  })
-  @IsString()
-    userId: string;
 
   @ApiPropertyOptional({
     description: '행사 관련 이미지',
     default: ['http://image.co.kr', 'http://image.co.kr'],
   })
+  @IsOptional()
   @IsArray()
     eventImages: string[];
 
@@ -78,6 +84,7 @@ export class EventCreateRequest {
     description: '행사 설명',
     default: 'nct 127 127day 기념 카페!',
   })
+  @IsOptional()
   @IsString()
     description: string;
 
@@ -85,6 +92,7 @@ export class EventCreateRequest {
     description: '행사관련 Url',
     default: 'https://event.com',
   })
+  @IsOptional()
   @IsString()
     eventUrl: string;
 
@@ -92,6 +100,7 @@ export class EventCreateRequest {
     description: '행사 주최자 SNS 아이디',
     default: 'nct127',
   })
+  @IsOptional()
   @IsString()
     organizerSns: string;
 
@@ -101,6 +110,7 @@ export class EventCreateRequest {
     type: 'enum',
     enum: SnsTypeEnum,
   })
+  @IsOptional()
   @IsEnum(SnsTypeEnum)
     snsType: SnsTypeEnum;
 
@@ -108,6 +118,7 @@ export class EventCreateRequest {
     description: '행사 특전 태그 리스트',
     default: ['5790e618-cb78-4d', '64ab26ab-274c-49'],
   })
+  @IsOptional()
   @IsArray()
     tags: string[];
 
