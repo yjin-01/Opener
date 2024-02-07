@@ -47,7 +47,7 @@ export class KakaoApi implements UserInformationApi {
       });
       return response.data;
     } catch (error) {
-      throw new InvalidException(error);
+      throw new InvalidException(error.message);
     }
   }
 
