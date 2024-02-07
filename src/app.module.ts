@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import DatabaseOption from './database.options';
@@ -11,6 +12,8 @@ import GroupModule from './group/group.module';
 import ArtistModule from './artist/artist.module';
 import { FileModule } from './file/file.module';
 import ReviewModule from './review/review.module';
+import { EmailModule } from './email/email.module';
+import emailOptions from './email.options';
 
 @Module({
   imports: [
@@ -22,6 +25,10 @@ import ReviewModule from './review/review.module';
       inject: [ConfigService],
       useFactory: DatabaseOption,
     }),
+    MailerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: emailOptions,
+    }),
     EventModule,
     UserModule,
     AuthenticationModule,
@@ -29,6 +36,7 @@ import ReviewModule from './review/review.module';
     GroupModule,
     FileModule,
     ReviewModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
