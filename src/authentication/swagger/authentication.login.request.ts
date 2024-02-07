@@ -2,11 +2,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AuthenticationLoginRequest {
   @ApiPropertyOptional({
-    description: '클라이언트에서 인증한 토큰',
+    description: 'oauth2.0에 사용할 code',
     default:
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   })
-    accessToken: string;
+    code: string;
 
   @ApiProperty({
     description: '클라이언트에서 인증한 이메일',

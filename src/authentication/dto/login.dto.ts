@@ -1,7 +1,7 @@
 import { IsEmail } from 'class-validator';
 
 export class LoginDto {
-  accessToken: string;
+  code: string;
 
   @IsEmail()
     email: string;
@@ -22,7 +22,7 @@ export class LoginDto {
     return this.signinMethod === 'opener';
   }
 
-  getAccessToken(): string {
-    return this.accessToken;
+  getCode(): string {
+    return this.code;
   }
 }

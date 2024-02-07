@@ -8,8 +8,7 @@ export class UserSignupDto {
     username: string;
 
   // TODO enum으로 리팩터링
-  @IsOptional()
-    signupMethod: string;
+  signupMethod: string;
 
   @IsEmail()
     email: string;
@@ -41,5 +40,9 @@ export class UserSignupDto {
 
   isOpener() {
     return this.signupMethod === 'opener';
+  }
+
+  hasArtists() {
+    return this.myArtists?.length > 0;
   }
 }

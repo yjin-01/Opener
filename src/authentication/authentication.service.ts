@@ -4,6 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { isMatch } from 'src/user/utils/encrypt';
 import { InvalidException } from 'src/user/exception/invalid.exception';
+import { plainToInstance } from 'class-transformer';
+import { UserSignupDto } from 'src/user/dto/user.signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserInformationApiFactory } from './api/userinformation.factory';
 import { TokenDto } from './dto/token.dto';
@@ -71,11 +73,17 @@ export class AuthenticationService {
         return await this.generateTokenPair(opener);
       }
 
-      const tokenInfo = await UserInformationApiFactory.getApi(loginDto).getTokenInfo();
+      const tokenInfo = await UserInformationApiFactory.getApi(
+        loginDto,
+        this.configService,
+      ).getTokenInfo();
       const user = await this.userRepository.findBy(tokenInfo);
 
       if (!user) {
-        throw new NotExistException('not exist user');
+        const newUser = await this.userRepository.create(
+          plainToInstance(UserSignupDto, tokenInfo),
+        );
+        return await this.generateTokenPair(newUser);
       }
 
       return await this.generateTokenPair(user);

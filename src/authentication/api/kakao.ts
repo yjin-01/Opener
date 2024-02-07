@@ -1,20 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import { request } from 'node:https';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import { UserInformationApi } from './interface/userinformation.api';
 import { LoginDto } from '../dto/login.dto';
 import { InvalidEmailException } from './exception/InvalidEmailException';
 
 @Injectable()
 export class KakaoApi implements UserInformationApi {
-  constructor(private readonly loginDto: LoginDto) {}
+  constructor(
+    private readonly loginDto: LoginDto,
+    private readonly configService: ConfigService,
+  ) {}
 
   async getTokenInfo(): Promise<any | null> {
-    const userInfo = await this.request();
+    const { access_token: accessToken } = await this.requestToken();
+
+    const userInfo = await this.getUser(accessToken);
     this.isValid(userInfo);
-    return userInfo;
+    return this.toUserInstance(userInfo);
   }
 
-  async request(): Promise<any | null> {
+  toUserInstance(user) {
+    return {
+      email: user.kakao_account.email,
+      nickName: user.kakao_account.profile.nickname,
+      signupMethod: 'kakao',
+    };
+  }
+
+  async requestToken(): Promise<any | null> {
+    const requestUrl = 'https://kauth.kakao.com/oauth/token';
+
+    const data = {};
+    const response = await axios.post(requestUrl, data, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      params: {
+        grant_type: 'authorization_code',
+        client_id: this.configService.get('KAKAO_CLIENT'),
+        code: this.loginDto.code,
+      },
+    });
+    return response.data;
+  }
+
+  async getUser(token) {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'kapi.kakao.com',
@@ -22,7 +54,7 @@ export class KakaoApi implements UserInformationApi {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.loginDto.getAccessToken()}`,
+          Authorization: `Bearer ${token}`,
         },
       };
 
