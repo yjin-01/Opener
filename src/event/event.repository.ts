@@ -652,7 +652,7 @@ export class EventRepository {
         .getRepository(Event)
         .findOne({ where: { id: eventId } });
 
-      if (!originEvent) throw new NotFoundException('Not exist Event');
+      if (!originEvent) throw new NotFoundException('Event not exist');
 
       const result = await this.entityManager.transaction(
         async (transactioManager) => {

@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class EventNotfoundResponse {
   @ApiProperty({
     description: '실패 내용',
-    default: 'user not exist',
+    default: 'event not exist',
   })
     message: string;
 
