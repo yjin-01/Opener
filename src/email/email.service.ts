@@ -2,9 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { plainToInstance } from 'class-transformer';
 import { UserRepository } from 'src/user/interface/user.repository';
+import * as moment from 'moment';
+import { InvalidException } from 'src/user/exception/invalid.exception';
 import { EmailRepository } from './email.repository';
 import { EmailVerification } from './entity/email.verifications.entity';
 import { EmailExistException } from './exception/email.exist.exception';
+import { NotExistException } from './exception/not.exist.exception';
 
 @Injectable()
 export class EmailService {
@@ -38,6 +41,42 @@ export class EmailService {
         html: `<b>${key}</b>`,
       });
       return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  isMatch(request, original) {
+    return request.verificationNumber === original.key;
+  }
+
+  isTimeOver(original) {
+    try {
+      const originalMoment = moment(original.createdAt).subtract('hours', 9);
+      const nowMoment = moment(Date.now());
+      return moment.duration(nowMoment.diff(originalMoment)).asMinutes() > 10;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async verificateEmail(verificationDto): Promise<number | undefined> {
+    try {
+      const original = await this.emailRepository.find(verificationDto);
+      if (!original) {
+        throw new NotExistException('not exist verification record');
+      }
+
+      if (this.isTimeOver(original)) {
+        throw new InvalidException('verification time is over');
+      }
+
+      if (!this.isMatch(verificationDto, original)) {
+        throw new InvalidException('not equal verification number');
+      }
+      return await this.emailRepository.update(original);
     } catch (error) {
       console.error(error);
       throw error;
