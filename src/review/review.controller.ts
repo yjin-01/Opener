@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Query,
+  SetMetadata,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,7 +24,7 @@ import {
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { ReviewService } from './review.service';
 import { ReviewPostRequest } from './swagger/review.post.request';
-import { ReviewPostBadRequest } from './swagger/review.post.badrequest';
+import { ReviewBadRequest } from './swagger/review.badrequest';
 import { ReviewValidationPipe } from './review.validation.pipe';
 import { ReviewPostDto } from './dto/review.post.dto';
 import { Review } from './entity/review.entity';
@@ -32,10 +33,12 @@ import {
   ReviewListRequestParamDto,
   ReviewListRequestQueryDto,
 } from './dto/review.list.request.dto';
-import { ReviewListResponse } from './swagger/review.list.response';
+import { ReviewsResponse } from './swagger/review.list.response';
 import { ReviewLikeDto } from './dto/review.like.dto';
 import { ReviewLikeRequest } from './swagger/review.like.request';
 import { ReviewNotfoundResponse } from './swagger/review.notfound.response';
+
+const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('리뷰')
 @Controller('/reviews')
@@ -55,7 +58,7 @@ export class ReviewController {
   @ApiBadRequestResponse({
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
-    type: ReviewPostBadRequest,
+    type: ReviewBadRequest,
   })
   async postReview(
     @Body(new ReviewValidationPipe()) reviewPostDto: ReviewPostDto,
@@ -81,7 +84,7 @@ export class ReviewController {
   @ApiBadRequestResponse({
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
-    type: ReviewPostBadRequest,
+    type: ReviewBadRequest,
   })
   @ApiNotFoundResponse({
     description: 'user 또는 review가 존재하지 않을 때 반환합니다',
@@ -100,7 +103,6 @@ export class ReviewController {
     }
   }
 
-  @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'eventId',
     required: true,
@@ -116,10 +118,17 @@ export class ReviewController {
     required: true,
     description: '한 페이지당 리뷰 갯수',
   })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
   @ApiOkResponse({
     description: '리뷰 리스트를 반환합니다',
-    type: ReviewListResponse,
+    type: ReviewsResponse,
+    isArray: true,
   })
+  @Public()
   @Get(':eventId')
   async getReviews(
     @Param(new ReviewValidationPipe())

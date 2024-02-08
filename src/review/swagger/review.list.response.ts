@@ -1,17 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-type ReviewUser = {
-  id: string;
-  nickName: string;
-  profileImage: string;
-};
+class ReviewUser {
+  @ApiProperty()
+    id: string;
 
-type ReviewImage = {
-  url: string;
-  createdAt: Date;
-};
+  @ApiProperty()
+    nickName: string;
 
-export class ReviewListResponse {
+  @ApiProperty()
+    profileImage: string;
+}
+
+class ReviewImage {
+  @ApiProperty()
+    url: string;
+
+  @ApiProperty()
+    createdAt: Date;
+}
+
+export class ReviewsResponse {
   @ApiProperty()
     id: string;
 
@@ -33,9 +41,9 @@ export class ReviewListResponse {
   @ApiProperty()
     likeCount: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: ReviewUser })
     user: ReviewUser;
 
-  @ApiProperty()
+  @ApiProperty({ type: ReviewImage, isArray: true })
     reviewImages: ReviewImage[];
 }
