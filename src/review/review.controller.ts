@@ -103,6 +103,10 @@ export class ReviewController {
     }
   }
 
+  @ApiOperation({
+    summary: '리뷰 리스트 조회',
+    description: '하나의 행사에 달린 리뷰 목록을 반환합니다',
+  })
   @ApiParam({
     name: 'eventId',
     required: true,
