@@ -18,6 +18,7 @@ import {
   ApiQuery,
   ApiOkResponse,
   ApiNotFoundResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { ReviewService } from './review.service';
@@ -42,6 +43,7 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post()
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '리뷰 등록',
     description: '새로운 리뷰가 등록됩니다',
@@ -67,6 +69,7 @@ export class ReviewController {
   }
 
   @Post('/:reviewId/like')
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '리뷰 좋아요',
     description: '리뷰에 좋아요를 누릅니다.',
@@ -97,6 +100,7 @@ export class ReviewController {
     }
   }
 
+  @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'eventId',
     required: true,
