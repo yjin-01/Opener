@@ -7,6 +7,9 @@ import {
   SetMetadata,
   Get,
   Query,
+  Patch,
+  NotFoundException,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,17 +19,23 @@ import {
   ApiBadRequestResponse,
   ApiOkResponse,
   ApiQuery,
+  ApiNotFoundResponse,
+  ApiInternalServerErrorResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TokenDto } from 'src/authentication/dto/token.dto';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
 import { UserSignupRequest } from './swagger/user.signup.request';
 import { UserSignupResponse } from './swagger/user.signup.response';
-import { UserSignupBadRequest } from './swagger/user.signup.badrequest';
+import { UserBadRequest } from './swagger/user.badrequest';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { ExistException } from './exception/exist.exception';
 import { InvalidException } from './exception/invalid.exception';
 import { UserNicknameResponse } from './swagger/user.nickname.response';
+import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
+import { UserProfileUpdateRequest } from './swagger/user.profile.update.request';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -53,7 +62,7 @@ export class UserController {
   @ApiBadRequestResponse({
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
-    type: UserSignupBadRequest,
+    type: UserBadRequest,
   })
   async checkDuplicatedNickname(
     @Query('search') search: string,
@@ -80,7 +89,7 @@ export class UserController {
   @ApiBadRequestResponse({
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
-    type: UserSignupBadRequest,
+    type: UserBadRequest,
   })
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
@@ -95,6 +104,44 @@ export class UserController {
         throw new BadRequestException(error);
       }
       console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Patch('/:userId/nickname')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '닉네임 수정',
+    description: '유저에 닉네임을 수정합니다',
+  })
+  @ApiBody({ type: UserProfileUpdateRequest })
+  @ApiOkResponse({
+    description: '닉네임이 수정되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '유저가 없을 때 반환 합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async updateMyProfile(
+    @Param('userId') userId: string,
+      @Body(new UserValidationPipe()) userUpdateDto: UserUpdateProfileDto,
+  ): Promise<number | undefined> {
+    try {
+      return await this.userService.updateProfile(userUpdateDto, userId);
+    } catch (error) {
+      if (error instanceof InvalidException) {
+        throw new BadRequestException(error);
+      }
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
       throw new InternalServerErrorException(error);
     }
   }

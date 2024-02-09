@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserSignupBadRequest {
+export class UserBadRequest {
   @ApiProperty({
     description: '대략적인 실패 내용',
     default: 'Validation failed',

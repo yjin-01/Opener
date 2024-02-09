@@ -2,11 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenDto } from 'src/authentication/dto/token.dto';
 import { AuthenticationService } from 'src/authentication/authentication.service';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { UserRepository } from './interface/user.repository';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { enctypt } from './utils/encrypt';
 import { InvalidException } from './exception/invalid.exception';
 import { UserNicknameResponse } from './dto/user.nickname.response';
+import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 
 @Injectable()
 export class UserService {
@@ -48,4 +50,37 @@ export class UserService {
       throw error;
     }
   }
+
+  async updateProfile(
+    userDto: UserUpdateProfileDto,
+    userId: string,
+  ): Promise<number | undefined> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('user not exist');
+      }
+
+      return await this.userRepositoryImple.updateById(userDto, userId);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // async updatePassword(userDto: UserUpdateProfileDto): Promise<number | undefined> {
+  //   try {
+  //     const user = await this.userRepositoryImple.findBy(userDto)
+
+  //     if (!user) {
+  //       throw new NotExistException('user not exist')
+  //     }
+
+  //     return await this.userRepositoryImple.update(userDto)
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // }
 }

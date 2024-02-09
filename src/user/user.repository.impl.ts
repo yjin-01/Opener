@@ -5,10 +5,37 @@ import { UserRepository } from './interface/user.repository';
 import { ExistException } from './exception/exist.exception';
 import { UserToArtist } from './entity/user.artist.entity';
 import { UserSignupDto } from './dto/user.signup.dto';
+import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 
 @Injectable()
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async findById(userId: any): Promise<User | null> {
+    try {
+      return await this.entityManager
+        .getRepository(User)
+        .findOneBy({ id: userId });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updateById(
+    userDto: UserUpdateProfileDto,
+    userId: string,
+  ): Promise<number | undefined> {
+    try {
+      const { affected } = await this.entityManager
+        .getRepository(User)
+        .update({ id: userId }, userDto);
+      return affected;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
   async findByNickname(nickname: any): Promise<User | null> {
     try {
