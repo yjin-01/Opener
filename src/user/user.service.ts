@@ -9,6 +9,7 @@ import { enctypt } from './utils/encrypt';
 import { InvalidException } from './exception/invalid.exception';
 import { UserNicknameResponse } from './dto/user.nickname.response';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
+import { UserUpdatePasswordDto } from './dto/user.update.password';
 
 @Injectable()
 export class UserService {
@@ -69,18 +70,30 @@ export class UserService {
     }
   }
 
-  // async updatePassword(userDto: UserUpdateProfileDto): Promise<number | undefined> {
-  //   try {
-  //     const user = await this.userRepositoryImple.findBy(userDto)
+  async updatePassword(
+    userDto: UserUpdatePasswordDto,
+    userId: string,
+  ): Promise<number | undefined> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
 
-  //     if (!user) {
-  //       throw new NotExistException('user not exist')
-  //     }
+      if (!userDto.isValidPassword()) {
+        throw new InvalidException('invalid password');
+      }
 
-  //     return await this.userRepositoryImple.update(userDto)
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // }
+      if (!user) {
+        throw new NotExistException('user not exist');
+      }
+
+      await userDto.encrypt(this.configService, enctypt);
+
+      return await this.userRepositoryImple.updateById(
+        userDto.excludePasswordCheck(),
+        userId,
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

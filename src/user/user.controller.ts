@@ -22,6 +22,7 @@ import {
   ApiNotFoundResponse,
   ApiInternalServerErrorResponse,
   ApiBearerAuth,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { TokenDto } from 'src/authentication/dto/token.dto';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
@@ -36,6 +37,8 @@ import { InvalidException } from './exception/invalid.exception';
 import { UserNicknameResponse } from './swagger/user.nickname.response';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { UserProfileUpdateRequest } from './swagger/user.profile.update.request';
+import { UserPasswordUpdateRequest } from './swagger/user.password.update.request';
+import { UserUpdatePasswordDto } from './dto/user.update.password';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -112,7 +115,7 @@ export class UserController {
   @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '닉네임 수정',
-    description: '유저에 닉네임을 수정합니다',
+    description: '유저 닉네임을 수정합니다',
   })
   @ApiBody({ type: UserProfileUpdateRequest })
   @ApiOkResponse({
@@ -122,6 +125,9 @@ export class UserController {
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
   })
   @ApiNotFoundResponse({
     description: '유저가 없을 때 반환 합니다',
@@ -135,6 +141,47 @@ export class UserController {
   ): Promise<number | undefined> {
     try {
       return await this.userService.updateProfile(userUpdateDto, userId);
+    } catch (error) {
+      if (error instanceof InvalidException) {
+        throw new BadRequestException(error);
+      }
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Patch('/:userId/password')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '패스워드 수정',
+    description: '유저 패스워드를 수정합니다',
+  })
+  @ApiBody({ type: UserPasswordUpdateRequest })
+  @ApiOkResponse({
+    description: '비밀번호가 변경되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiNotFoundResponse({
+    description: '유저가 없을 때 반환 합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async updateMyPassword(
+    @Param('userId') userId: string,
+      @Body(new UserValidationPipe()) userUpdateDto: UserUpdatePasswordDto,
+  ): Promise<number | undefined> {
+    try {
+      return await this.userService.updatePassword(userUpdateDto, userId);
     } catch (error) {
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
