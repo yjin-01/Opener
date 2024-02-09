@@ -111,15 +111,15 @@ export class UserController {
     }
   }
 
-  @Patch('/:userId/nickname')
+  @Patch('/:userId/profile')
   @ApiBearerAuth('accessToken')
   @ApiOperation({
-    summary: '닉네임 수정',
-    description: '유저 닉네임을 수정합니다',
+    summary: 'profile 수정',
+    description: '유저 profile을 수정합니다',
   })
   @ApiBody({ type: UserProfileUpdateRequest })
   @ApiOkResponse({
-    description: '닉네임이 수정되었을 때 반환합니다',
+    description: 'profile이 수정되었을 때 반환합니다',
   })
   @ApiBadRequestResponse({
     description:

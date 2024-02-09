@@ -5,4 +5,7 @@ export class UserUpdateProfileDto {
   @Expose({ name: 'nickName' })
   @IsOptional()
     alias: string;
+
+  @IsOptional()
+    profileImage: string;
 }
