@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ArtistRepository } from 'src/artist/artist.repository';
 import { EventRepository } from './event.repository';
 import { EventCreateRequest } from './dto/event.create.request';
@@ -10,6 +10,11 @@ import {
 } from './dto/event.list.response.dto';
 import { EventListQueryDto } from './dto/event.list.dto';
 import { EventUpdateRequest } from './dto/event.update.request';
+import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.request.dto';
+import { EventUpdateApplicationRequestDto } from './dto/event.update.application.request.dto';
+import { EventUpdateApplication } from './entity/event.update.application.entity';
+import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
+import { Tag } from './entity/tag.entity';
 
 @Injectable()
 export class EventService {
@@ -147,6 +152,7 @@ export class EventService {
     return result;
   }
 
+  // 유저가 좋아요한 아티스트 목록 조회
   async getEventListByUserArtist(
     userId: string,
     page: string,
@@ -474,7 +480,7 @@ export class EventService {
     return eventList;
   }
 
-  async getEventDetail({ eventId }) {
+  async getEventDetail(eventId: string) {
     const event = await this.eventRepository.findOneEventByEventId(eventId);
 
     if (!event) {
@@ -501,7 +507,7 @@ export class EventService {
   }
 
   async getEventByUserLike(
-    userId,
+    userId: string,
     requirement: EventUserLikeListQueryDto,
   ): Promise<EventListByCursorRespone> {
     const eventList = await this.eventRepository.findEventLikeByUserId(
@@ -620,9 +626,91 @@ export class EventService {
     }
   }
 
+  async createEventUpdateApplication(
+    eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
+  ): Promise<String> {
+    try {
+      const result = await this.eventRepository.createEventUpdateApplication(
+        eventUpdateApplicationRequestDto,
+      );
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async approveEventUpdate(
+    eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
+    userId: string,
+  ): Promise<EventUpdateApplication | null> {
+    try {
+      const result = await this.eventRepository.approveEventUpdate(
+        eventUpdateApprovalRequestDto,
+        userId,
+      );
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getEventUpdateApplicationList(
+    eventId: string,
+  ): Promise<EventUpdateApplication[] | null> {
+    try {
+      const result = await this.eventRepository.findUpdateApplication(eventId);
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getEventUpdateApplicationDetail(
+    eventUpdateApplicationId: string,
+  ): Promise<EventUpdateApplicationDetailDto | null> {
+    try {
+      const result = await this.eventRepository.findUpdateApplicationDetail(
+        eventUpdateApplicationId,
+      );
+
+      if (!result) {
+        return null;
+      }
+
+      console.log(result);
+
+      const originEvent = await this.getEventDetail(result.eventId);
+
+      if (!originEvent) throw new NotFoundException('Event not exist');
+
+      return { applicationDetail: result, originEvent };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async toggleEventLike({ eventId, userId }): Promise<boolean> {
     try {
       const result = await this.eventRepository.likeToggle({ eventId, userId });
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getTagList(tags: string): Promise<Tag[] | null> {
+    try {
+      const tagIds = tags ? tags.split(',') : null;
+
+      const result = await this.eventRepository.findTag(tagIds);
 
       return result;
     } catch (error) {

@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Entity,
   Column,
@@ -9,9 +10,17 @@ import {
 
 @Entity('tags')
 export class Tag {
+  @ApiProperty({
+    description: '태그(특전) Id',
+    default: '',
+  })
   @PrimaryGeneratedColumn('uuid')
     id: string;
 
+  @ApiProperty({
+    description: '태그(특전) 이름',
+    default: '',
+  })
   @Column({ name: 'tag_name' })
     tagName: string;
 

@@ -10,6 +10,8 @@ import {
   UseInterceptors,
   Put,
   NotFoundException,
+  Req,
+  ConflictException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -22,6 +24,7 @@ import {
   ApiOkResponse,
   ApiNotFoundResponse,
   ApiInternalServerErrorResponse,
+  ApiConflictResponse,
 } from '@nestjs/swagger';
 import { EventService } from './event.service';
 import { EventCreateRequest } from './dto/event.create.request';
@@ -44,13 +47,19 @@ import {
 import { EventUpdateRequest } from './dto/event.update.request';
 import { EventInternalServerResponse } from './swagger/event.servererror.response';
 import { EventNotfoundResponse } from './swagger/event.notfound.response';
+import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.request.dto';
+import { EventConflitResponse } from './swagger/event.conflict.response';
+import { EventUpdateApplicationRequestDto } from './dto/event.update.application.request.dto';
+import { EventUpdateApplication } from './entity/event.update.application.entity';
+import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
+import { Tag } from './entity/tag.entity';
 
 const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('행사')
 @Controller('/event')
 export class EventController {
-  constructor(private readonly evnetService: EventService) {}
+  constructor(private readonly eventService: EventService) {}
 
   @Public()
   @ApiOperation({
@@ -71,7 +80,7 @@ export class EventController {
     @Query() getEventListDto: EventListQueryDto,
   ): Promise<EventListByPageResponseDto> {
     try {
-      return await this.evnetService.getEventList(getEventListDto);
+      return await this.eventService.getEventList(getEventListDto);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -111,7 +120,7 @@ export class EventController {
   ): Promise<EventListByPageResponseDto> {
     try {
       console.log(userId, page, size);
-      return await this.evnetService.getEventListByUserArtist(
+      return await this.eventService.getEventListByUserArtist(
         userId,
         page,
         size,
@@ -171,7 +180,7 @@ export class EventController {
   @Get('/popularity')
   async getEventListByPopularity(): Promise<any> {
     try {
-      return await this.evnetService.getEventListByPopularity();
+      return await this.eventService.getEventListByPopularity();
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -191,7 +200,32 @@ export class EventController {
   @Get('/new')
   async getNewEventList(): Promise<Event[]> {
     try {
-      return await this.evnetService.getNewEventList();
+      return await this.eventService.getNewEventList();
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: '특전 목록 조회',
+    description: '특전 목록을 조회합니다.',
+  })
+  @ApiQuery({
+    name: 'tags',
+    description: '조회할 태그 IDs',
+    example: '427ccba2-beb2-43,484f52cb-016f-48,5790e618-cb78-4d',
+    required: false,
+  })
+  @ApiOkResponse({
+    description: '특전 목록',
+    type: [Tag],
+  })
+  @Get('/tag')
+  async getTagList(@Query('tags') tags: string): Promise<Tag[] | null> {
+    try {
+      return await this.eventService.getTagList(tags);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -217,7 +251,7 @@ export class EventController {
     @Param('eventId') eventId: string,
   ): Promise<Event | null> {
     try {
-      return await this.evnetService.getEventDetail({ eventId });
+      return await this.eventService.getEventDetail(eventId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -283,7 +317,7 @@ export class EventController {
       @Query() requirement: EventUserLikeListQueryDto,
   ): Promise<EventListByCursorRespone> {
     try {
-      return await this.evnetService.getEventByUserLike(userId, requirement);
+      return await this.eventService.getEventByUserLike(userId, requirement);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -309,7 +343,7 @@ export class EventController {
     @Body(new EventValidationPipe()) eventCreateRequest: EventCreateRequest,
   ): Promise<EventCreateResponse | null> {
     try {
-      return await this.evnetService.createEvent(eventCreateRequest);
+      return await this.eventService.createEvent(eventCreateRequest);
     } catch (error) {
       if (error instanceof InternalServerErrorException) {
         console.error('error', error);
@@ -317,6 +351,77 @@ export class EventController {
       }
       console.error(error);
       throw error;
+    }
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: '행사별 수정 신청 목록 조회',
+    description: '행사 수정 신청 조회합니다.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    description: '조회할 행사의 ID',
+    example: 'be14e489-1b39-422e-aef2-f9041ef9e375',
+  })
+  @ApiOkResponse({
+    description: '행사 수정 신청 목록',
+    type: [EventUpdateApplication],
+  })
+  @ApiNotFoundResponse({
+    description: '존재하지 않는 이벤트 ID',
+    type: EventNotfoundResponse,
+  })
+  @Get(':eventId/update/application')
+  async getEventUpdateApplicationList(
+    @Param('eventId') eventId: string,
+  ): Promise<EventUpdateApplication[] | null> {
+    try {
+      return await this.eventService.getEventUpdateApplicationList(eventId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: '행사 수정 신청 상세 조회',
+    description: '행사 수정 신청 상세 조회합니다.',
+  })
+  @ApiParam({
+    name: 'eventUpdateApplicationId',
+    description: '조회할 행사 수정 신청의 ID',
+    example: 'be14e489-1b39-422e-aef2-f9041ef9e375',
+  })
+  @ApiOkResponse({
+    description: '행사의 상세 내역',
+    type: EventUpdateApplicationDetailDto,
+  })
+  @ApiNotFoundResponse({
+    description:
+      '존재하지 않는 행사 수정 신청의 ID 또는 존재하지 않는 이벤트 ID',
+    type: EventNotfoundResponse,
+  })
+  @Get('/update/application/:eventUpdateApplicationId')
+  async getEventUpdateApplicationDetail(
+    @Param('eventUpdateApplicationId') eventUpdateApplicationId: string,
+  ): Promise<EventUpdateApplicationDetailDto | null> {
+    try {
+      return await this.eventService.getEventUpdateApplicationDetail(
+        eventUpdateApplicationId,
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException(error);
     }
   }
 
@@ -329,7 +434,7 @@ export class EventController {
     name: 'eventId',
     description: '이벤트의 Id',
   })
-  @ApiBody({ type: EventCreateRequest })
+  @ApiBody({ type: EventUpdateRequest })
   @ApiOkResponse({
     description: '수정 등록된 행사에 대한 정보',
     type: Event,
@@ -344,12 +449,94 @@ export class EventController {
       @Body(new EventValidationPipe()) eventUpdateRequest: EventUpdateRequest,
   ): Promise<Event | null> {
     try {
-      return await this.evnetService.updateEvent(eventId, eventUpdateRequest);
+      return await this.eventService.updateEvent(eventId, eventUpdateRequest);
     } catch (error) {
       if (error instanceof NotFoundException) {
         console.error(error);
         throw error;
       }
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '행사 수정 신청',
+    description: ' 행사 수정 신청 API.',
+  })
+  @ApiBody({ type: EventUpdateApplicationRequestDto })
+  @ApiOkResponse({
+    description: '수정 등록된 행사에 대한 정보',
+    type: String,
+  })
+  @ApiNotFoundResponse({
+    description: '존재하지 않는 event Id인 경우',
+    type: EventNotfoundResponse,
+  })
+  @Post('/update/application')
+  async createEventUpdateApplication(
+    @Body(new EventValidationPipe())
+      eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
+  ): Promise<String> {
+    try {
+      return await this.eventService.createEventUpdateApplication(
+        eventUpdateApplicationRequestDto,
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '행사 수정 신청 승인 및 거절',
+    description: ' 행사 수정 신청 승인 및 거절 API.',
+  })
+  @ApiBody({
+    type: EventUpdateApprovalRequestDto,
+  })
+  @ApiOkResponse({
+    description: '행사 수정 신청 내역',
+    type: EventUpdateApplication,
+  })
+  @ApiNotFoundResponse({
+    description: '존재하지 않는 이벤트 수정 신청Id인 경우',
+    type: EventNotfoundResponse,
+  })
+  @ApiConflictResponse({
+    description: '이미 승인 및 거절한 경우 또는 이미 반영된 수정 신청인 경우',
+    type: EventConflitResponse,
+  })
+  @Post('/update/approval')
+  async approveEventUpdate(
+    @Body(new EventValidationPipe())
+      eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
+      @Req() req: any,
+  ): Promise<EventUpdateApplication | null> {
+    try {
+      const { userId } = req.user;
+
+      return await this.eventService.approveEventUpdate(
+        eventUpdateApprovalRequestDto,
+        userId,
+      );
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        console.error(error);
+        throw error;
+      }
+
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+
       console.error(error);
       throw new InternalServerErrorException();
     }
@@ -385,7 +572,7 @@ export class EventController {
       @Body('userId', new EventValidationPipe()) userId: string,
   ): Promise<boolean> {
     try {
-      return await this.evnetService.toggleEventLike({ eventId, userId });
+      return await this.eventService.toggleEventLike({ eventId, userId });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
