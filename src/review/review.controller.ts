@@ -37,6 +37,12 @@ import { ReviewsResponse } from './swagger/review.list.response';
 import { ReviewLikeDto } from './dto/review.like.dto';
 import { ReviewLikeRequest } from './swagger/review.like.request';
 import { ReviewNotfoundResponse } from './swagger/review.notfound.response';
+import {
+  ReviewUserRequestParamDto,
+  ReviewUserRequestQueryDto,
+} from './dto/review.user.request.dto';
+import { ReviewUserDto } from './dto/review.user.dto';
+import { ReviewUserResponse } from './swagger/review.user.response';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -141,6 +147,48 @@ export class ReviewController {
   ): Promise<ReviewDto[]> {
     try {
       return await this.reviewService.getReviews(reviewParamDto, cursor);
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @ApiOperation({
+    summary: '유저가 리뷰 리스트 조회',
+    description: '유저가 작성한 리뷰 목록을 반환합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    required: true,
+    description: '유저 아이디',
+  })
+  @ApiQuery({
+    name: 'cursorId',
+    required: true,
+    description: '현재 페이지 번호',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: true,
+    description: '한 페이지당 리뷰 갯수',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiOkResponse({
+    description: '리뷰 리스트를 반환합니다',
+    type: ReviewUserResponse,
+    isArray: true,
+  })
+  @Get('/user/:userId')
+  async getUserReviews(
+    @Param(new ReviewValidationPipe())
+      reviewParamDto: ReviewUserRequestParamDto,
+      @Query(new ReviewValidationPipe()) cursor: ReviewUserRequestQueryDto,
+  ): Promise<ReviewUserDto[]> {
+    try {
+      return await this.reviewService.getUserReviews(reviewParamDto, cursor);
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

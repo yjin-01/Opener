@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { Review } from './review.entity';
 
@@ -15,10 +16,10 @@ export class ReviewImage {
   @PrimaryGeneratedColumn('uuid')
     id: string;
 
-  @Column({ name: 'user_id' })
+  @PrimaryColumn({ name: 'user_id' })
     userId: string;
 
-  @Column({ name: 'review_id' })
+  @PrimaryColumn({ name: 'review_id' })
     reviewId: string;
 
   @Column()
@@ -44,7 +45,10 @@ export class ReviewImage {
   })
     deletedAt: Date;
 
-  @JoinColumn({ name: 'review_id' })
-  @ManyToOne(() => Review, (review) => review.reviewImages)
+  @JoinColumn({ name: 'review_id', referencedColumnName: 'id' })
+  @ManyToOne(() => Review, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
     review: Review;
 }

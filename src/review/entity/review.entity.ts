@@ -9,13 +9,16 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from 'src/user/entity/user.entity';
+import { Event } from 'src/event/entity/event.entity';
 import { ReviewImage } from './review.imege.entity';
 import { ReviewLike } from './review.like.entity';
 
 @Entity('reviews')
 export class Review {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
+    sequence: number;
+
+  @Column('uuid')
     id: string;
 
   @Column('uuid', { name: 'user_id' })
@@ -23,9 +26,6 @@ export class Review {
 
   @Column('uuid', { name: 'event_id' })
     eventId: string;
-
-  @Column()
-    sequence: number;
 
   @Column({ name: 'is_public' })
     isPublic: boolean;
@@ -59,13 +59,18 @@ export class Review {
   })
     deletedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.reviews)
-  @JoinColumn({ name: 'user_id' })
-    user: User;
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'id' })
+  @ManyToOne(() => Event, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
+    event: Event;
 
   @OneToMany(() => ReviewImage, (image) => image.review)
+  @JoinColumn({ name: 'id', referencedColumnName: 'review_id' })
     reviewImages: ReviewImage[];
 
   @OneToMany(() => ReviewLike, (like) => like.review)
-    reviewLikes: ReviewLike;
+  @JoinColumn({ name: 'id', referencedColumnName: 'review_id' })
+    reviewLikes: ReviewLike[];
 }

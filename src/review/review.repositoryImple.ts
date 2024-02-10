@@ -88,6 +88,43 @@ export class ReviewRepositoryImpl implements ReviewRepository {
     }
   }
 
+  async findUserReviews(reviewParamDto, cursor): Promise<Review[] | []> {
+    try {
+      return await this.entityManager
+        .getRepository(Review)
+        .createQueryBuilder('r')
+        .leftJoinAndSelect('r.reviewImages', 'ri')
+        .leftJoinAndSelect('r.reviewLikes', 'rl')
+        .leftJoinAndSelect('r.event', 'e')
+        .select([
+          'r.id',
+          'r.sequence',
+          'r.isPublic',
+          'r.rating',
+          'r.description',
+          'r.createdAt',
+        ])
+        .addSelect(['ri.id', 'ri.url', 'ri.createdAt'])
+        .addSelect(['rl.userId', 'rl.isLike'])
+        .addSelect([
+          'e.id',
+          'e.placeName',
+          'e.eventType',
+          'e.address',
+          'e.startDate',
+          'e.endDate',
+        ])
+        .where(`r.userId = '${reviewParamDto.getUserId()}'`)
+        .andWhere(`r.sequence < ${cursor.getCursorId()}`)
+        .orderBy('r.sequence', 'DESC')
+        .take(cursor.getSize())
+        .getMany();
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   async create(reviewPostDto): Promise<any> {
     try {
       return await this.entityManager.transaction(

@@ -13,6 +13,7 @@ import { IsEnum } from 'class-validator';
 import { User } from 'src/user/entity/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { Review } from 'src/review/entity/review.entity';
 import { EventTypeEnum, SnsTypeEnum } from './event.enum';
 import { EventTarget } from './event.target.entity';
 import { EventTag } from './event.tag.entity';
@@ -188,6 +189,10 @@ export class Event {
 
   @OneToMany(() => EventLike, (eventLike) => eventLike.event)
     eventLikes: EventLike[];
+
+  @OneToMany(() => Review, (review) => review.event)
+  @JoinColumn({ name: 'id', referencedColumnName: 'event_id' })
+    reviews: Review[];
 
   // 이 컬럼은 실제 테이블에 추가되지 않습니다.
   @ApiPropertyOptional({
