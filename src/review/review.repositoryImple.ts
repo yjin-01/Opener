@@ -75,7 +75,7 @@ export class ReviewRepositoryImpl implements ReviewRepository {
         ])
         .addSelect(['u.id', 'u.alias', 'u.profileImage'])
         .addSelect(['ri.id', 'ri.url'])
-        .addSelect(['rl.id', 'rl.isLike'])
+        .addSelect(['rl.id', 'rl.userId', 'rl.isLike'])
         .where(`r.eventId = '${reviewParamDto.getEventId()}'`)
         .andWhere('r.isPublic = true')
         .andWhere(`r.sequence < ${cursor.getCursorId()}`)

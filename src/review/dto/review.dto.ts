@@ -40,6 +40,9 @@ export class ReviewDto {
     likeCount: number;
 
   @Expose()
+    isLike: boolean;
+
+  @Expose()
   @Type(() => ReviewUser)
     user: ReviewUser;
 
