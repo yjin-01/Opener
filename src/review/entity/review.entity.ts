@@ -10,6 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Event } from 'src/event/entity/event.entity';
+import { User } from 'src/user/entity/user.entity';
 import { ReviewImage } from './review.imege.entity';
 import { ReviewLike } from './review.like.entity';
 
@@ -58,6 +59,13 @@ export class Review {
     nullable: true,
   })
     deletedAt: Date;
+
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @ManyToOne(() => User, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
+    user: User;
 
   @JoinColumn({ name: 'event_id', referencedColumnName: 'id' })
   @ManyToOne(() => Event, {

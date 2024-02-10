@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Event } from 'src/event/entity/event.entity';
+import { Review } from 'src/review/entity/review.entity';
 import { UserToArtist } from './user.artist.entity';
 // https://stackoverflow.com/questions/46589957/es6-modules-and-circular-dependency/46593566#46593566
 @Entity('users')
@@ -58,4 +60,8 @@ export class User {
 
   @OneToMany(() => Event, (event) => event.user)
     event: Event[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+    reviews: Review[];
 }

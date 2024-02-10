@@ -1,10 +1,15 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 
-type ReviewUser = {
-  id: string;
-  nickName: string;
-  profileImage: string;
-};
+class ReviewUser {
+  @Expose()
+    id: string;
+
+  @Expose({ name: 'alias' })
+    nickName: string;
+
+  @Expose()
+    profileImage: string;
+}
 
 type ReviewImage = {
   url: string;
@@ -35,6 +40,7 @@ export class ReviewDto {
     likeCount: number;
 
   @Expose()
+  @Type(() => ReviewUser)
     user: ReviewUser;
 
   @Expose()

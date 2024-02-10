@@ -62,9 +62,9 @@ export class ReviewRepositoryImpl implements ReviewRepository {
       return await this.entityManager
         .getRepository(Review)
         .createQueryBuilder('r')
-        .leftJoinAndSelect('r.user', 'user')
-        .leftJoinAndSelect('r.reviewImages', 'reviewImages')
-        .leftJoinAndSelect('r.reviewLikes', 'reviewLikes')
+        .leftJoinAndSelect('r.user', 'u')
+        .leftJoinAndSelect('r.reviewImages', 'ri')
+        .leftJoinAndSelect('r.reviewLikes', 'rl')
         .select([
           'r.id',
           'r.sequence',
@@ -73,9 +73,9 @@ export class ReviewRepositoryImpl implements ReviewRepository {
           'r.description',
           'r.createdAt',
         ])
-        .addSelect(['user.id', 'user.alias', 'user.profileImage'])
-        .addSelect(['reviewImages.url', 'reviewImages.createdAt'])
-        .addSelect(['reviewLikes.isLike'])
+        .addSelect(['u.id', 'u.alias', 'u.profileImage'])
+        .addSelect(['ri.id', 'ri.url'])
+        .addSelect(['rl.id', 'rl.isLike'])
         .where(`r.eventId = '${reviewParamDto.getEventId()}'`)
         .andWhere('r.isPublic = true')
         .andWhere(`r.sequence < ${cursor.getCursorId()}`)
