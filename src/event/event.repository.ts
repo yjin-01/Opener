@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +19,10 @@ import { EventLike } from './entity/event.like.entity';
 import { EventUserLikeListQueryDto } from './dto/event.user-like.list.dto';
 import { EventListByPageResponseDto } from './dto/event.list.response.dto';
 import { EventUpdateRequest } from './dto/event.update.request';
+import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.request.dto';
+import { EventUpdateApproval } from './entity/event.update.approval.entity';
+import { EventUpdateApplicationRequestDto } from './dto/event.update.application.request.dto';
+import { EventUpdateApplication } from './entity/event.update.application.entity';
 
 @Injectable()
 export class EventRepository {
@@ -148,7 +153,10 @@ export class EventRepository {
         );
       }
 
+      query.groupBy('e.id');
+
       const totalCount = await query.getCount();
+
       query.orderBy('e.sequence', 'DESC');
 
       query.offset(skip).limit(size);
@@ -741,6 +749,360 @@ export class EventRepository {
     }
   }
 
+  // 행사 수정 신청
+  async createEventUpdateApplication(
+    eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
+  ): Promise<String> {
+    try {
+      const {
+        updateCategory, eventId, userId, ...rest
+      } = eventUpdateApplicationRequestDto;
+
+      const originEvent = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventId } });
+
+      if (!originEvent) {
+        throw new NotFoundException('Event Applicaion not exist');
+      }
+
+      let data: object;
+      let updateData: string;
+      await this.entityManager.transaction(async (transactioManager) => {
+        updateCategory.forEach(async (el: string) => {
+          if (el === 'artist') {
+            data = {
+              groupId: rest.groupId,
+              artists: rest.artists,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'eventType') {
+            data = {
+              eventType: rest.eventType,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'placeName') {
+            data = {
+              placeName: rest.placeName,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'address') {
+            data = {
+              address: rest.address,
+              addressDetail: rest.addressDetail,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'period') {
+            data = {
+              startDate: rest.startDate,
+              endDate: rest.endDate,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'tags') {
+            data = {
+              tags: rest.tags,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'eventImages') {
+            data = {
+              eventImages: rest.eventImages,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'organizer') {
+            data = {
+              organizerSns: rest.organizerSns,
+              snsType: rest.snsType,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'eventUrl') {
+            data = {
+              eventUrl: rest.eventUrl,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          } else if (el === 'description') {
+            data = {
+              description: rest.description,
+            };
+
+            updateData = JSON.stringify(data);
+
+            await transactioManager.getRepository(EventUpdateApplication).save({
+              eventId,
+              userId,
+              updateCategory: el,
+              updateData,
+            });
+          }
+        });
+      });
+
+      return 'Application completed';
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 행사 수정 승인 및 거절
+  async approveEventUpdate(
+    eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
+    userId: string,
+  ): Promise<EventUpdateApplication | null> {
+    try {
+      const { eventUpdateApplicationId, isApproved } = eventUpdateApprovalRequestDto;
+
+      const application = await this.entityManager
+        .getRepository(EventUpdateApplication)
+        .findOne({ where: { id: eventUpdateApplicationId } });
+
+      if (!application) {
+        throw new NotFoundException('Event Applicaion not exist');
+      }
+
+      if (application.isReflected) {
+        throw new ConflictException(
+          'The application has already been reflected',
+        );
+      }
+
+      const approval = await this.entityManager
+        .getRepository(EventUpdateApproval)
+        .findOne({ where: { eventUpdateApplicationId, userId } });
+
+      if (approval) {
+        throw new ConflictException('Already approved or rejected');
+      }
+
+      const result = await this.entityManager.transaction(
+        async (transactioManager) => {
+          await transactioManager.getRepository(EventUpdateApproval).save({
+            eventUpdateApplicationId,
+            userId,
+            isApproved,
+          });
+
+          // 승인인 경우
+          if (isApproved) {
+            let approvalResult = await transactioManager
+              .getRepository(EventUpdateApplication)
+              .save({
+                ...application,
+                approvalCount: application.approvalCount + 1,
+              });
+
+            if (approvalResult.approvalCount === 3) {
+              const updateData = JSON.parse(application.updateData);
+
+              if (approvalResult.updateCategory === 'tags') {
+                if (updateData.tags && updateData.tags.length !== 0) {
+                  await transactioManager
+                    .getRepository(EventTag)
+                    .delete({ eventId: application.eventId });
+
+                  const tagDataToInsert = updateData.tags.map((el: string) => ({
+                    tagId: el,
+                    eventId: application.eventId,
+                  }));
+
+                  await transactioManager
+                    .getRepository(EventTag)
+                    .createQueryBuilder()
+                    .insert()
+                    .into(EventTag)
+                    .values(tagDataToInsert)
+                    .execute();
+                }
+              } else if (approvalResult.updateCategory === 'eventImages') {
+                if (
+                  updateData.eventImages
+                  && updateData.eventImages.length !== 0
+                ) {
+                  await transactioManager
+                    .getRepository(EventImage)
+                    .delete({ eventId: application.eventId });
+
+                  const imageDataToInsert = updateData.eventImages.map(
+                    (el: string, idx: number) => {
+                      if (idx === 0) {
+                        return {
+                          eventId: application.eventId,
+                          imageUrl: el,
+                          isMain: true,
+                        };
+                      }
+                      return {
+                        eventId: application.eventId,
+                        imageUrl: el,
+                        isMain: false,
+                      };
+                    },
+                  );
+
+                  await transactioManager
+                    .getRepository(EventImage)
+                    .createQueryBuilder()
+                    .insert()
+                    .into(EventImage)
+                    .values(imageDataToInsert)
+                    .execute();
+                }
+              } else {
+                // 수정 반영
+                const event = await transactioManager
+                  .getRepository(Event)
+                  .findOne({ where: { id: application.eventId } });
+
+                await transactioManager.getRepository(Event).save({
+                  ...event,
+                  ...updateData,
+                });
+              }
+
+              // 수정 완료로 변경
+              approvalResult = await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  ...approvalResult,
+                  isReflected: true,
+                });
+
+              return approvalResult;
+            }
+          }
+          // 거절인 경우
+          const rejectionResult = await transactioManager
+            .getRepository(EventUpdateApplication)
+            .save({
+              ...application,
+              rejectionCount: application.rejectionCount + 1,
+            });
+
+          // 3회인 경우 삭제
+          if (rejectionResult.rejectionCount === 3) {
+            await transactioManager
+              .getRepository(EventUpdateApplication)
+              .softDelete({ id: eventUpdateApplicationId });
+          }
+
+          return rejectionResult;
+        },
+      );
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 신청 목록 조회
+  async findUpdateApplication(
+    eventId: string,
+  ): Promise<EventUpdateApplication[] | null> {
+    try {
+      const applicationList = await this.entityManager
+        .getRepository(EventUpdateApplication)
+        .find({ where: { eventId } });
+
+      return applicationList;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 신청 상세 내역 조회
+  async findUpdateApplicationDetail(
+    eventUpdateApplicationId: string,
+  ): Promise<EventUpdateApplication | null> {
+    try {
+      const application = await this.entityManager
+        .getRepository(EventUpdateApplication)
+        .findOne({ where: { id: eventUpdateApplicationId } });
+
+      if (!application) {
+        throw new NotFoundException('Event Applicaion not exist');
+      }
+
+      return application;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async likeToggle({ eventId, userId }): Promise<boolean> {
     try {
       const like = await this.entityManager
@@ -764,6 +1126,27 @@ export class EventRepository {
       });
 
       return true;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // =======================================
+  // 태그 조회
+  async findTag(tagIds: string[] | null): Promise<Tag[] | null> {
+    try {
+      const query = this.entityManager
+        .getRepository(Tag)
+        .createQueryBuilder('t');
+
+      if (tagIds) {
+        query.where('t.id IN (:...tagIds)', { tagIds });
+      }
+
+      const tagList = await query.getMany();
+
+      return tagList;
     } catch (error) {
       console.error(error);
       throw error;
