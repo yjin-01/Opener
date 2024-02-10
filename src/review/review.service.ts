@@ -7,6 +7,10 @@ import {
   ReviewUserRequestQueryDto,
 } from './dto/review.user.request.dto';
 import { ReviewUserDto } from './dto/review.user.dto';
+import {
+  ReviewListRequestParamDto,
+  ReviewListRequestQueryDto,
+} from './dto/review.list.request.dto';
 
 @Injectable()
 export class ReviewService {
@@ -24,7 +28,10 @@ export class ReviewService {
     }
   }
 
-  async getReviews(reviewParamDto, cursor): Promise<ReviewDto[] | []> {
+  async getReviews(
+    reviewParamDto: ReviewListRequestParamDto,
+    cursor: ReviewListRequestQueryDto,
+  ): Promise<ReviewDto[] | []> {
     try {
       // TODO 리팩터링
       const reviews = await this.reviewRepository.find(reviewParamDto, cursor);
@@ -38,7 +45,17 @@ export class ReviewService {
 
         return { ...review, likeCount };
       });
-      return reviewsDto.map((review) => plainToInstance(ReviewDto, review));
+      return reviewsDto
+        .map((review) => {
+          let isLike = false;
+          review.reviewLikes.forEach((like) => {
+            if (like.isLike && like.userId === cursor.getUserId()) {
+              isLike = true;
+            }
+          });
+          return { ...review, isLike };
+        })
+        .map((review) => plainToInstance(ReviewDto, review));
     } catch (error) {
       console.error(error);
       throw error;
