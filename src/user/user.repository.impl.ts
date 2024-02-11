@@ -6,10 +6,29 @@ import { ExistException } from './exception/exist.exception';
 import { UserToArtist } from './entity/user.artist.entity';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
+import { FollowDto } from './dto/follow.dto';
 
 @Injectable()
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async createFollow(
+    userId: string,
+    followDto: FollowDto,
+  ): Promise<string | null> {
+    try {
+      const { identifiers } = await this.entityManager
+        .getRepository(UserToArtist)
+        .createQueryBuilder()
+        .insert()
+        .into(UserToArtist)
+        .values(followDto.toEntities(userId))
+        .execute();
+      return identifiers[0].id;
+    } catch (error) {
+      throw new Error('Method not implemented.');
+    }
+  }
 
   async findById(userId: any): Promise<User | null> {
     try {

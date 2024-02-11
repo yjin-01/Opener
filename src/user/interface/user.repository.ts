@@ -1,3 +1,4 @@
+import { FollowDto } from '../dto/follow.dto';
 import { User } from '../entity/user.entity';
 
 export interface UserRepository {
@@ -6,4 +7,5 @@ export interface UserRepository {
   findById(userId): Promise<User | null>;
   findByNickname(nickname): Promise<User | null>;
   updateById(userDto, userId): Promise<number | undefined>;
+  createFollow(userId: string, followDto: FollowDto): Promise<string | null>;
 }

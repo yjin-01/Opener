@@ -10,6 +10,7 @@ import { InvalidException } from './exception/invalid.exception';
 import { UserNicknameResponse } from './dto/user.nickname.response';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { UserUpdatePasswordDto } from './dto/user.update.password';
+import { FollowDto } from './dto/follow.dto';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,24 @@ export class UserService {
     private readonly authenticationService: AuthenticationService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}
+
+  async addArtist(
+    userId: string,
+    followDto: FollowDto,
+  ): Promise<string | null> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      return await this.userRepositoryImple.createFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
   async createUser(user: UserSignupDto): Promise<TokenDto | null> {
     try {

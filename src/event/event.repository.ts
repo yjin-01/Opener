@@ -1103,6 +1103,27 @@ export class EventRepository {
     }
   }
 
+  // =======================================
+  // 좋아요 관련
+  async checkLikeStatus({ eventId, userId }): Promise<boolean> {
+    try {
+      const like = await this.entityManager
+        .getRepository(EventLike)
+        .findOne({ where: { eventId, userId } });
+
+      // 좋아요 X
+      if (!like) {
+        return false;
+      }
+
+      // 좋아요 한 경우
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async likeToggle({ eventId, userId }): Promise<boolean> {
     try {
       const like = await this.entityManager

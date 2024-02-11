@@ -515,6 +515,8 @@ export class EventService {
       requirement,
     );
 
+    console.log('requirement', requirement);
+
     if (eventList.length === 0) {
       return { cursorId: null, size: requirement.size, eventList: [] };
     }
@@ -689,6 +691,20 @@ export class EventService {
       if (!originEvent) throw new NotFoundException('Event not exist');
 
       return { applicationDetail: result, originEvent };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async checkLikeStatus({ eventId, userId }): Promise<boolean> {
+    try {
+      const result = await this.eventRepository.checkLikeStatus({
+        eventId,
+        userId,
+      });
+
+      return result;
     } catch (error) {
       console.error(error);
       throw error;
