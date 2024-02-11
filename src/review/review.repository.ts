@@ -13,4 +13,8 @@ export interface ReviewRepository {
     reviewId: string,
     reviewImageDto: ReviewImageDto,
   ): Promise<string | null>;
+  deleteImages(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<number | null>;
 }

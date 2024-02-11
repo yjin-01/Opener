@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
   NotFoundException,
@@ -58,8 +59,57 @@ const Public = () => SetMetadata('isPublic', true);
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
+  @Delete('/:reviewId/images')
+  @ApiBearerAuth('accessToken')
+  @ApiParam({
+    name: 'reviewId',
+    type: 'uuid',
+    description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
+  })
+  @ApiOperation({
+    summary: '리뷰 이미지 삭제',
+    description: '기존 리뷰에 이미지를 삭제합니다',
+  })
+  @ApiBody({ type: ReviewImageRequest })
+  @ApiOkResponse({
+    description: '이미지가 삭제 되었을 때 반환합니다',
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '유저 또는 리뷰가 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async deleteReviewImage(
+    @Param('reviewId') reviewId: string,
+      @Body(new ReviewValidationPipe()) reviewImageDto: ReviewImageDto,
+  ): Promise<number | null> {
+    try {
+      return await this.reviewService.deleteReviewImage(
+        reviewId,
+        reviewImageDto,
+      );
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
   @Post('/:reviewId/images')
   @ApiBearerAuth('accessToken')
+  @ApiParam({
+    name: 'reviewId',
+    type: 'uuid',
+    description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
+  })
   @ApiOperation({
     summary: '리뷰 이미지 추가',
     description: '기존 리뷰에 이미지를 추가합니다',

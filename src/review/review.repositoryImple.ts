@@ -13,6 +13,26 @@ import { ReviewImageDto } from './dto/review.image.dto';
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async deleteImages(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<number | null> {
+    try {
+      const { affected } = await this.entityManager
+        .getRepository(ReviewImage)
+        .createQueryBuilder()
+        .delete()
+        .from(ReviewImage)
+        .whereInIds(reviewImageDto.getImages(reviewId))
+        .execute();
+      console.log(affected);
+      return affected || null;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async createImages(
     reviewId: string,
     reviewImageDto: ReviewImageDto,

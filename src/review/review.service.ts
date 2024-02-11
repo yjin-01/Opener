@@ -27,6 +27,27 @@ export class ReviewService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async deleteReviewImage(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<number | null> {
+    try {
+      const [review, user] = await Promise.all([
+        this.reviewRepository.findOneByReviewId(reviewId),
+        this.userRepository.findById(reviewImageDto.getUserId()),
+      ]);
+
+      if (!review || !user) {
+        throw new NotExistException('not exist field');
+      }
+
+      return await this.reviewRepository.deleteImages(reviewId, reviewImageDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async addReviewImage(
     reviewId: string,
     reviewImageDto: ReviewImageDto,
