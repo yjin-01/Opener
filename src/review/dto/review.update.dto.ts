@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { IsOptional } from 'class-validator';
 
 type UpdateTarget = {
   userId: string;
@@ -20,10 +21,13 @@ export class ReviewUpdateDto {
   @Expose({ name: 'reviewId' })
   private id: string;
 
+  @IsOptional()
   private isPublic: boolean;
 
+  @IsOptional()
   private rating: boolean;
 
+  @IsOptional()
   private description: string;
 
   getUpdateTarget(): UpdateTarget {
