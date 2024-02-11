@@ -1,5 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { EventRepository } from 'src/event/event.repository';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
+import { UserRepository } from 'src/user/interface/user.repository';
 import { ReviewRepository } from './review.repository';
 import { ReviewDto } from './dto/review.dto';
 import {
@@ -11,17 +14,42 @@ import {
   ReviewListRequestParamDto,
   ReviewListRequestQueryDto,
 } from './dto/review.list.request.dto';
+import { ReviewUpdateDto } from './dto/review.update.dto';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @Inject('ReviewRepository')
     private readonly reviewRepository: ReviewRepository,
+    private readonly eventRepository: EventRepository,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
   ) {}
 
   async createReview(reviewPostDto): Promise<any> {
     try {
       return await this.reviewRepository.create(reviewPostDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updateReview(reviewUpdateDto: ReviewUpdateDto): Promise<any> {
+    try {
+      const [event, user, review] = await Promise.all([
+        this.eventRepository.findOneEventByEventId(
+          reviewUpdateDto.getEventId(),
+        ),
+        this.userRepository.findById(reviewUpdateDto.getUserId()),
+        this.reviewRepository.findOneByReviewId(reviewUpdateDto.getReviewId()),
+      ]);
+
+      if (!event || !user || !review) {
+        throw new NotExistException('not exist field');
+      }
+
+      return await this.reviewRepository.updateReview(reviewUpdateDto);
     } catch (error) {
       console.error(error);
       throw error;
