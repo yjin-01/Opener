@@ -16,6 +16,7 @@ import { EventRepository } from 'src/event/event.repository';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { UserRepository } from 'src/user/interface/user.repository';
 
+
 @Injectable()
 export class ReviewService {
   constructor(
