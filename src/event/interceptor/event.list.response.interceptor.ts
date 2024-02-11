@@ -40,8 +40,7 @@ implements NestInterceptor<T, EventListByCursorRespone> {
 }
 
 @Injectable()
-export class EventListResponseInterceptor<T>
-implements NestInterceptor<T, Event> {
+export class EventResponseInterceptor<T> implements NestInterceptor<T, Event> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
