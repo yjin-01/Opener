@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   SetMetadata,
@@ -20,6 +21,8 @@ import {
   ApiOkResponse,
   ApiNotFoundResponse,
   ApiBearerAuth,
+  ApiInternalServerErrorResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { ReviewService } from './review.service';
@@ -43,6 +46,8 @@ import {
 } from './dto/review.user.request.dto';
 import { ReviewUserDto } from './dto/review.user.dto';
 import { ReviewUserResponse } from './swagger/review.user.response';
+import { ReviewUpdateRequest } from './swagger/review.update.request';
+import { ReviewUpdateDto } from './dto/review.update.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -50,6 +55,41 @@ const Public = () => SetMetadata('isPublic', true);
 @Controller('/reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
+
+  @Patch()
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '리뷰 수정',
+    description: '기존 리뷰를 수정합니다',
+  })
+  @ApiBody({ type: ReviewUpdateRequest })
+  @ApiOkResponse({
+    description: '리뷰가 수정되었을 때 반환합니다',
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '행사 또는 리뷰가 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async updateReview(
+    @Body(new ReviewValidationPipe()) reviewUpdateDto: ReviewUpdateDto,
+  ): Promise<Review[]> {
+    try {
+      return await this.reviewService.updateReview(reviewUpdateDto);
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
 
   @Post()
   @ApiBearerAuth('accessToken')
