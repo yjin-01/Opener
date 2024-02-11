@@ -23,6 +23,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiBearerAuth,
   ApiUnauthorizedResponse,
+  ApiParam,
 } from '@nestjs/swagger';
 import { TokenDto } from 'src/authentication/dto/token.dto';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
@@ -39,6 +40,8 @@ import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { UserProfileUpdateRequest } from './swagger/user.profile.update.request';
 import { UserPasswordUpdateRequest } from './swagger/user.password.update.request';
 import { UserUpdatePasswordDto } from './dto/user.update.password';
+import { FollowDto } from './dto/follow.dto';
+import { FollowRequest } from './swagger/follow.request';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -46,6 +49,52 @@ const Public = () => SetMetadata('isPublic', true);
 @Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('/:userId/artists')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '아티스트 팔로우',
+    description: '아티스트를 팔로우합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
+    type: 'uuid',
+    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+  })
+  @ApiBody({
+    type: FollowRequest,
+  })
+  @ApiCreatedResponse({
+    description: '아티스트가 추가되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'token 없이 요청하였을 때 반환합니다',
+  })
+  @ApiNotFoundResponse({
+    description: '계정이 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버가 처리할 수 없을 때 반환합니다',
+  })
+  async followArtist(
+    @Param('userId') userId: string,
+      @Body(new UserValidationPipe()) followDto: FollowDto,
+  ): Promise<string | null> {
+    try {
+      return await this.userService.addArtist(userId, followDto);
+    } catch (error) {
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
 
   @Public()
   @Get('/nickname')
