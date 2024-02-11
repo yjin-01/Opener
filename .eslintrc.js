@@ -33,6 +33,7 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off",
         "class-methods-use-this": "off",
         "import/no-cycle": "off",
-        "max-classes-per-file": "off"
+        "max-classes-per-file": "off",
+        "max-len": ["error", { "code": 120 }]
     }
 }

@@ -48,6 +48,8 @@ import { ReviewUserDto } from './dto/review.user.dto';
 import { ReviewUserResponse } from './swagger/review.user.response';
 import { ReviewUpdateRequest } from './swagger/review.update.request';
 import { ReviewUpdateDto } from './dto/review.update.dto';
+import { ReviewImageRequest } from './swagger/review.image.request';
+import { ReviewImageDto } from './dto/review.image.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -55,6 +57,42 @@ const Public = () => SetMetadata('isPublic', true);
 @Controller('/reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
+
+  @Post('/:reviewId/images')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '리뷰 이미지 추가',
+    description: '기존 리뷰에 이미지를 추가합니다',
+  })
+  @ApiBody({ type: ReviewImageRequest })
+  @ApiCreatedResponse({
+    description: '이미지가 추가 되었을 때 반환합니다',
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '유저 또는 리뷰가 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async addReviewImage(
+    @Param('reviewId') reviewId: string,
+      @Body(new ReviewValidationPipe()) reviewImageDto: ReviewImageDto,
+  ): Promise<string | null> {
+    try {
+      return await this.reviewService.addReviewImage(reviewId, reviewImageDto);
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
 
   @Patch()
   @ApiBearerAuth('accessToken')
@@ -193,7 +231,7 @@ export class ReviewController {
   }
 
   @ApiOperation({
-    summary: '유저가 리뷰 리스트 조회',
+    summary: '유저 리뷰 리스트 조회',
     description: '유저가 작성한 리뷰 목록을 반환합니다',
   })
   @ApiParam({

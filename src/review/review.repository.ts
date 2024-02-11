@@ -1,3 +1,4 @@
+import { ReviewImageDto } from './dto/review.image.dto';
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { Review } from './entity/review.entity';
 
@@ -8,4 +9,8 @@ export interface ReviewRepository {
   updateLike(reviewLikeDto): Promise<number | null>;
   updateReview(reviewUpdateDto: ReviewUpdateDto): Promise<number | undefined>;
   findOneByReviewId(reviewId: string): Promise<Review | null>;
+  createImages(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<string | null>;
 }

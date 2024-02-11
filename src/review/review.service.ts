@@ -1,5 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { EventRepository } from 'src/event/event.repository';
+import { NotExistException } from 'src/authentication/exception/not.exist.exception';
+import { UserRepository } from 'src/user/interface/user.repository';
 import { ReviewRepository } from './review.repository';
 import { ReviewDto } from './dto/review.dto';
 import {
@@ -12,10 +15,7 @@ import {
   ReviewListRequestQueryDto,
 } from './dto/review.list.request.dto';
 import { ReviewUpdateDto } from './dto/review.update.dto';
-import { EventRepository } from 'src/event/event.repository';
-import { NotExistException } from 'src/authentication/exception/not.exist.exception';
-import { UserRepository } from 'src/user/interface/user.repository';
-
+import { ReviewImageDto } from './dto/review.image.dto';
 
 @Injectable()
 export class ReviewService {
@@ -24,8 +24,29 @@ export class ReviewService {
     private readonly reviewRepository: ReviewRepository,
     private readonly eventRepository: EventRepository,
     @Inject('UserRepository')
-    private readonly userRepository:UserRepository
+    private readonly userRepository: UserRepository,
   ) {}
+
+  async addReviewImage(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<string | null> {
+    try {
+      const [review, user] = await Promise.all([
+        this.reviewRepository.findOneByReviewId(reviewId),
+        this.userRepository.findById(reviewImageDto.getUserId()),
+      ]);
+
+      if (!review || !user) {
+        throw new NotExistException('not exist field');
+      }
+
+      return await this.reviewRepository.createImages(reviewId, reviewImageDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
   async createReview(reviewPostDto): Promise<any> {
     try {
@@ -36,16 +57,18 @@ export class ReviewService {
     }
   }
 
-  async updateReview(reviewUpdateDto:ReviewUpdateDto): Promise<any> {
+  async updateReview(reviewUpdateDto: ReviewUpdateDto): Promise<any> {
     try {
       const [event, user, review] = await Promise.all([
-        this.eventRepository.findOneEventByEventId(reviewUpdateDto.getEventId()),
+        this.eventRepository.findOneEventByEventId(
+          reviewUpdateDto.getEventId(),
+        ),
         this.userRepository.findById(reviewUpdateDto.getUserId()),
-        this.reviewRepository.findOneByReviewId(reviewUpdateDto.getReviewId())
-      ])
+        this.reviewRepository.findOneByReviewId(reviewUpdateDto.getReviewId()),
+      ]);
 
       if (!event || !user || !review) {
-        throw new NotExistException('not exist field')
+        throw new NotExistException('not exist field');
       }
 
       return await this.reviewRepository.updateReview(reviewUpdateDto);

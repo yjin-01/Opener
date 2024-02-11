@@ -7,10 +7,29 @@ import { ReviewRepository } from './review.repository';
 import { ReviewImage } from './entity/review.imege.entity';
 import { ReviewLike } from './entity/review.like.entity';
 import { ReviewUpdateDto } from './dto/review.update.dto';
+import { ReviewImageDto } from './dto/review.image.dto';
 
 @Injectable()
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async createImages(
+    reviewId: string,
+    reviewImageDto: ReviewImageDto,
+  ): Promise<string | null> {
+    try {
+      const { identifiers } = await this.entityManager
+        .getRepository(ReviewImage)
+        .createQueryBuilder()
+        .insert()
+        .into(ReviewImage)
+        .values(reviewImageDto.toEntities(reviewId))
+        .execute();
+      return identifiers[0].id;
+    } catch (error) {
+      throw new Error('Method not implemented.');
+    }
+  }
 
   async findOneByReviewId(reviewId: string): Promise<Review | null> {
     try {
