@@ -6,10 +6,39 @@ import { Review } from './entity/review.entity';
 import { ReviewRepository } from './review.repository';
 import { ReviewImage } from './entity/review.imege.entity';
 import { ReviewLike } from './entity/review.like.entity';
+import { ReviewUpdateDto } from './dto/review.update.dto';
 
 @Injectable()
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async findOneByReviewId(reviewId: string): Promise<Review | null> {
+    try {
+      return await this.entityManager
+        .getRepository(Review)
+        .findOneBy({ id: reviewId });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updateReview(
+    reviewUpdateDto: ReviewUpdateDto,
+  ): Promise<number | undefined> {
+    try {
+      const { affected } = await this.entityManager
+        .getRepository(Review)
+        .update(
+          reviewUpdateDto.getUpdateTarget(),
+          reviewUpdateDto.getUpdateValue(),
+        );
+      return affected;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
   async updateLike(reviewLikeDto: any): Promise<number | null> {
     try {
