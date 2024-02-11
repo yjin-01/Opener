@@ -42,7 +42,7 @@ import { Event } from './entity/event.entity';
 import {
   EventListByCursorResponseInterceptor,
   EventListByPageResponseInterceptor,
-  EventListResponseInterceptor,
+  EventResponseInterceptor,
 } from './interceptor/event.list.response.interceptor';
 import { EventUpdateRequest } from './dto/event.update.request';
 import { EventInternalServerResponse } from './swagger/event.servererror.response';
@@ -176,7 +176,7 @@ export class EventController {
     description: '가장 인기있는 행사 목록',
     type: [Event],
   })
-  @UseInterceptors(EventListResponseInterceptor)
+  @UseInterceptors(EventResponseInterceptor)
   @Get('/popularity')
   async getEventListByPopularity(): Promise<any> {
     try {
@@ -196,7 +196,7 @@ export class EventController {
     description: '새로 올라온 행사 목록',
     type: [Event],
   })
-  @UseInterceptors(EventListResponseInterceptor)
+  @UseInterceptors(EventResponseInterceptor)
   @Get('/new')
   async getNewEventList(): Promise<Event[]> {
     try {
@@ -232,26 +232,30 @@ export class EventController {
     }
   }
 
-  @Public()
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
-    summary: '행사 상세 조회',
-    description: '행사 상세를 조회합니다.',
+    summary: '로그인 시 행사 좋아요 여부 확인',
+    description: '로그인한 유저의 행사 좋아요 여부 알 수 있음',
   })
-  @ApiParam({
+  @ApiQuery({
+    name: 'userId',
+    description: '이벤트 ID',
+  })
+  @ApiQuery({
     name: 'eventId',
-    description: '조회할 이벤트의 ID',
-    example: 'be14e489-1b39-422e-aef2-f9041ef9e375',
+    description: '이벤트 ID',
   })
   @ApiOkResponse({
-    description: '행사의 상세 내역',
-    type: Event,
+    description: '좋아요 한 상태 시 true, 아닐 시 false',
+    type: Boolean,
   })
-  @Get(':eventId')
-  async getEventDetail(
-    @Param('eventId') eventId: string,
-  ): Promise<Event | null> {
+  @Get('/like')
+  async checkEventLikeByUser(
+    @Query('eventId', new EventValidationPipe()) eventId: string,
+      @Query('userId', new EventValidationPipe()) userId: string,
+  ): Promise<boolean> {
     try {
-      return await this.eventService.getEventDetail(eventId);
+      return await this.eventService.checkLikeStatus({ eventId, userId });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -317,7 +321,35 @@ export class EventController {
       @Query() requirement: EventUserLikeListQueryDto,
   ): Promise<EventListByCursorRespone> {
     try {
+      console.log('userId', userId);
       return await this.eventService.getEventByUserLike(userId, requirement);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Public()
+  @ApiOperation({
+    summary: '행사 상세 조회',
+    description: '행사 상세를 조회합니다.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    description: '조회할 이벤트의 ID',
+    example: 'be14e489-1b39-422e-aef2-f9041ef9e375',
+  })
+  @ApiOkResponse({
+    description: '행사의 상세 내역',
+    type: Event,
+  })
+  @UseInterceptors(EventResponseInterceptor)
+  @Get(':eventId')
+  async getEventDetail(
+    @Param('eventId') eventId: string,
+  ): Promise<Event | null> {
+    try {
+      return await this.eventService.getEventDetail(eventId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
