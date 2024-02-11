@@ -59,6 +59,51 @@ const Public = () => SetMetadata('isPublic', true);
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
+  @Get('/:reviewId/users/:userId')
+  @ApiBearerAuth('accessToken')
+  @ApiParam({
+    name: 'reviewId',
+    type: 'uuid',
+    description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
+  })
+  @ApiParam({
+    name: 'userId',
+    type: 'uuid',
+    description: 'e6460f22-e325-470b-8720-c36ce7794622',
+  })
+  @ApiOperation({
+    summary: '리뷰 조회',
+    description: '리뷰 아이디, 유저 아이디로 하나의 리뷰를 조회합니다',
+  })
+  @ApiOkResponse({
+    description: '하나의 리뷰를 반환합니다',
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '유저 또는 리뷰가 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async getReview(
+    @Param('reviewId') reviewId: string,
+      @Param('userId') userId: string,
+  ): Promise<Review | null> {
+    try {
+      return await this.reviewService.getReview(reviewId, userId);
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
   @Delete('/:reviewId/images')
   @ApiBearerAuth('accessToken')
   @ApiParam({

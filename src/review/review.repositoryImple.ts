@@ -13,6 +13,22 @@ import { ReviewImageDto } from './dto/review.image.dto';
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async findWithImages(reviewId: string): Promise<Review | null> {
+    try {
+      return await this.entityManager
+        .getRepository(Review)
+        .createQueryBuilder('r')
+        .leftJoinAndSelect('r.reviewImages', 'ri')
+        .select(['r.id', 'r.isPublic', 'r.rating', 'r.description'])
+        .addSelect(['ri.id', 'ri.url'])
+        .where(`r.id = '${reviewId}'`)
+        .andWhere(`ri.reviewId = '${reviewId}'`)
+        .getOne();
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
   async deleteImages(
     reviewId: string,
     reviewImageDto: ReviewImageDto,
@@ -25,7 +41,6 @@ export class ReviewRepositoryImpl implements ReviewRepository {
         .from(ReviewImage)
         .whereInIds(reviewImageDto.getImages(reviewId))
         .execute();
-      console.log(affected);
       return affected || null;
     } catch (error) {
       console.error(error);

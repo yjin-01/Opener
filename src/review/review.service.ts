@@ -16,6 +16,7 @@ import {
 } from './dto/review.list.request.dto';
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { ReviewImageDto } from './dto/review.image.dto';
+import { Review } from './entity/review.entity';
 
 @Injectable()
 export class ReviewService {
@@ -27,20 +28,33 @@ export class ReviewService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async exists(reviewId: string, userId: string): Promise<void> {
+    const [review, user] = await Promise.all([
+      this.reviewRepository.findOneByReviewId(reviewId),
+      this.userRepository.findById(userId),
+    ]);
+
+    if (!review || !user) {
+      throw new NotExistException('not exist field');
+    }
+  }
+
+  async getReview(reviewId: string, userId: string): Promise<Review | null> {
+    try {
+      await this.exists(reviewId, userId);
+      return await this.reviewRepository.findWithImages(reviewId);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async deleteReviewImage(
     reviewId: string,
     reviewImageDto: ReviewImageDto,
   ): Promise<number | null> {
     try {
-      const [review, user] = await Promise.all([
-        this.reviewRepository.findOneByReviewId(reviewId),
-        this.userRepository.findById(reviewImageDto.getUserId()),
-      ]);
-
-      if (!review || !user) {
-        throw new NotExistException('not exist field');
-      }
-
+      await this.exists(reviewId, reviewImageDto.getUserId());
       return await this.reviewRepository.deleteImages(reviewId, reviewImageDto);
     } catch (error) {
       console.error(error);
@@ -53,15 +67,7 @@ export class ReviewService {
     reviewImageDto: ReviewImageDto,
   ): Promise<string | null> {
     try {
-      const [review, user] = await Promise.all([
-        this.reviewRepository.findOneByReviewId(reviewId),
-        this.userRepository.findById(reviewImageDto.getUserId()),
-      ]);
-
-      if (!review || !user) {
-        throw new NotExistException('not exist field');
-      }
-
+      await this.exists(reviewId, reviewImageDto.getUserId());
       return await this.reviewRepository.createImages(reviewId, reviewImageDto);
     } catch (error) {
       console.error(error);

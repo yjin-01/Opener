@@ -17,4 +17,5 @@ export interface ReviewRepository {
     reviewId: string,
     reviewImageDto: ReviewImageDto,
   ): Promise<number | null>;
+  findWithImages(reviewId: string): Promise<Review | null>;
 }
