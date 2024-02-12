@@ -31,6 +31,12 @@ export class ArtistResponse {
   @Expose()
     artistImage: string;
 
+  @ApiProperty({
+    description: '솔로 여부',
+  })
+  @Expose()
+    isSolo: Boolean;
+
   // @ApiPropertyOptional({
   //   description: '등록된 아티스트의 그룹 ID => 없거나 null인경우 솔로 입니다.',
   //   default: '53bdc763-2036-4d',

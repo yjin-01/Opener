@@ -7,14 +7,16 @@ import {
   Query,
   ParseIntPipe,
   UseInterceptors,
+  SetMetadata,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBody,
-  ApiCreatedResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { GroupCreateRequest } from './dto/group.create.request';
 import { GroupService } from './group.service';
@@ -23,13 +25,15 @@ import { GroupListResponse } from './dto/group.list.response';
 import { Group } from './entity/group.entity';
 import { GroupCreateResponseInterceptor } from './interceptor/group.create.response.interceptor';
 
+const Public = () => SetMetadata('isPublic', true);
+
 @ApiTags('그룹&아티스트')
 @Controller('/group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
+  @Public()
   @Get('/solo')
-  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹 + 솔로 목록 조회',
     description: '그룹 + 솔로 목록을 조회 가능합니다. [그룹명으로 검색 가능]',
@@ -55,7 +59,7 @@ export class GroupController {
     example: 12,
     required: false,
   })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '등록되어있는 그룹+솔로 목록 조회',
     type: [GroupListResponse],
   })
@@ -76,6 +80,37 @@ export class GroupController {
     }
   }
 
+  @Public()
+  @Get()
+  @ApiOperation({
+    summary: '그룹 Id를 이용한 아티스트 조회',
+    description: '그룹 정보를 조회합니다.',
+  })
+  @ApiQuery({
+    name: 'groupId',
+    description: '조회할 그룹의 ID',
+    type: String,
+    example: '313bbd45-8207-4836-8377-7f1fa173339d',
+  })
+  @ApiOkResponse({
+    description: '아티스트 목록',
+    type: Group,
+  })
+  async getGrouptByGroupId(
+    @Query('groupId') groupId: string,
+  ): Promise<Group | null> {
+    try {
+      return await this.groupService.getGrouptByGroupId(groupId);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   @UseInterceptors(GroupCreateResponseInterceptor)
   @Post()
   @ApiBearerAuth('accessToken')
@@ -84,7 +119,7 @@ export class GroupController {
     description: '새로운 그룹을 등록합니다.',
   })
   @ApiBody({ type: GroupCreateRequest })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '정상 등록된 그룹에 대한 정보',
     type: GroupResponse,
   })

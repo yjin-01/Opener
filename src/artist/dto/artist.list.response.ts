@@ -5,6 +5,13 @@ import { ArtistGroupListResponse } from '../swagger/artist.artistgrouplist.respo
 @Exclude()
 export class ArtistListResponse {
   @ApiProperty({
+    description: '전체 개수',
+    default: 100,
+  })
+  @Expose()
+    totalCount: number;
+
+  @ApiProperty({
     description: '페이지',
     default: 1,
   })

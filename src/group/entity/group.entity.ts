@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Entity,
   Column,
@@ -9,15 +10,31 @@ import {
 
 @Entity('groups')
 export class Group {
+  @ApiProperty({
+    description: '그룹 ID',
+    default: '5c6141ab-cf30-48',
+  })
   @PrimaryGeneratedColumn('uuid')
     id: string;
 
+  @ApiProperty({
+    description: '그룹 이름',
+    default: '~~~',
+  })
   @Column({ name: 'group_name' })
     groupName: string;
 
+  @ApiProperty({
+    description: '그룹 데뷔일',
+    default: '~~~',
+  })
   @Column({ name: 'debut_date' })
     debutDate: Date;
 
+  @ApiPropertyOptional({
+    description: '그룹 이미지',
+    default: '~~~',
+  })
   @Column({ name: 'group_image' })
     groupImage: string;
 

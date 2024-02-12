@@ -38,14 +38,20 @@ export class GroupRepository {
         + ' WHERE 1 = 1';
 
       if (keyword) {
+        // eslint-disable-next-line max-len
         query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
       }
+
+      let totalCount = await this.entityManager.query(query);
+
+      totalCount = totalCount.length;
 
       query += ` LIMIT ${itemsPerPage} OFFSET ${skip}`;
 
       const groupAndSoloList = await this.entityManager.query(query);
 
       return {
+        totalCount,
         page: currentPage,
         size: itemsPerPage,
         groupAndSoloList,
@@ -54,6 +60,14 @@ export class GroupRepository {
       console.error(error);
       throw error;
     }
+  }
+
+  async findGroupByGroupId(groupId: string): Promise<Group | null> {
+    const artistList = await this.entityManager
+      .getRepository(Group)
+      .findOne({ where: { id: groupId } });
+
+    return artistList;
   }
 
   async createGroup(groupInfo: GroupCreateRequest): Promise<Group | null> {

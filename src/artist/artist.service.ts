@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistRepository } from './artist.repository';
 import { ArtistListResponse } from './dto/artist.list.response';
@@ -39,6 +39,27 @@ export class ArtistService {
   async getArtistListByGroup(groupId: string): Promise<Artist[] | null> {
     try {
       const result = await this.artistRepository.findAllArtsitByGroup(groupId);
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getArtistByArtistId(artists: string): Promise<Artist[] | null> {
+    try {
+      if (!artists) {
+        throw new BadRequestException();
+      }
+
+      const artistIds = artists.split(',');
+
+      if (artistIds.length === 0) {
+        throw new BadRequestException();
+      }
+
+      const result = await this.artistRepository.findArtistByArtistId(artistIds);
+
       return result;
     } catch (error) {
       console.error(error);
