@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ReviewListRequestParamDto {
@@ -18,7 +18,7 @@ export class ReviewListRequestQueryDto {
   @Type(() => Number)
   private size: number;
 
-  @IsString()
+  @IsOptional()
   private userId: string;
 
   getCursorId() {
