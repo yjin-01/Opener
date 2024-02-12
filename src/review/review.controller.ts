@@ -297,6 +297,11 @@ export class ReviewController {
     description: '현재 페이지 번호',
   })
   @ApiQuery({
+    name: 'userId',
+    required: false,
+    description: '로그인 했을 때 유저의 아이디',
+  })
+  @ApiQuery({
     name: 'size',
     required: true,
     description: '한 페이지당 리뷰 갯수',
