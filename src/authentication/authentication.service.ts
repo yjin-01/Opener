@@ -19,7 +19,7 @@ export class AuthenticationService {
     private readonly configService: ConfigService,
   ) {}
 
-  async generateTokenPair(user): Promise<TokenDto | null> {
+  async generateTokenPair(user): Promise<TokenDto> {
     try {
       const [accessToken, refreshToken] = await Promise.all([
         this.jwtService.signAsync(

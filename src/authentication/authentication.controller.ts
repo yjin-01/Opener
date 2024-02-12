@@ -7,6 +7,7 @@ import {
   SetMetadata,
   BadRequestException,
   NotFoundException,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,9 +16,13 @@ import {
   ApiCreatedResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import { JsonWebTokenError } from '@nestjs/jwt';
 import { InvalidException } from 'src/user/exception/invalid.exception';
+import { Response } from 'express';
+import { UserService } from 'src/user/user.service';
+import { UserDto } from 'src/user/dto/user.dto';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
@@ -35,17 +40,20 @@ const Public = () => SetMetadata('isPublic', true);
 @ApiTags('인증')
 @Controller('/auth')
 export class AuthenticationController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly userService: UserService,
+  ) {}
 
   @Public()
   @Post()
   @ApiOperation({
     summary: '로그인',
-    description: '새로운 API 토큰이 발행됩니다',
+    description: '유저가 로그인을 합니다',
   })
   @ApiBody({ type: AuthenticationLoginRequest })
   @ApiCreatedResponse({
-    description: 'API 토큰이 발급되었을 때 반환합니다',
+    description: '유저 정보를 반환합니다',
     type: AuthenticationLoginResponse,
   })
   @ApiBadRequestResponse({
@@ -57,18 +65,37 @@ export class AuthenticationController {
     description: '로그인하는 계정이 존재하지 않을 때 반환합니다',
     type: AuthenticationLoginNotFound,
   })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
   async signin(
     @Body(new AuthenticationValidationPipe()) loginDto: LoginDto,
-  ): Promise<null> {
+      @Res({ passthrough: true }) res: Response,
+  ): Promise<UserDto | null> {
     try {
-      return await this.authenticationService.login(loginDto);
+      const token = await this.authenticationService.login(loginDto);
+      const user = await this.userService.getUser(loginDto.getEmail());
+
+      res.appendHeader(
+        'Set-Cookie',
+        `accessToken=${token!.accessToken}; Secure; HttpOnly`,
+      );
+      res.appendHeader(
+        'Set-Cookie',
+        `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
+      );
+
+      return user;
     } catch (err) {
       if (
         err instanceof InvalidEmailException
         || err instanceof InvalidException
       ) {
         throw new BadRequestException(err);
-      } else if (err instanceof NotExistException) {
+      } else if (
+        err instanceof NotExistException
+        || err instanceof NotExistException
+      ) {
         throw new NotFoundException(err);
       }
       throw new InternalServerErrorException(err);

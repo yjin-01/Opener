@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TokenDto } from 'src/authentication/dto/token.dto';
-import { AuthenticationService } from 'src/authentication/authentication.service';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { plainToInstance } from 'class-transformer';
 import { UserRepository } from './interface/user.repository';
@@ -13,15 +11,25 @@ import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { UserUpdatePasswordDto } from './dto/user.update.password';
 import { FollowDto } from './dto/follow.dto';
 import { FollowArtist } from './dto/follow.artist.dto';
+import { User } from './entity/user.entity';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly configService: ConfigService,
-    @Inject('AuthenticationService')
-    private readonly authenticationService: AuthenticationService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}
+
+  async getUser(email: string): Promise<UserDto | null> {
+    const user = this.userRepositoryImple.findByEmail(email);
+
+    if (!user) {
+      throw new NotExistException('not exist user');
+    }
+
+    return plainToInstance(UserDto, user);
+  }
 
   async getMyArtistList(userId: string): Promise<FollowArtist[] | null> {
     try {
@@ -74,7 +82,7 @@ export class UserService {
     }
   }
 
-  async createUser(user: UserSignupDto): Promise<TokenDto | null> {
+  async createUser(user: UserSignupDto): Promise<User | null> {
     try {
       if (user.isOpener() && !user.isValidPassword()) {
         throw new InvalidException('invalid password');
@@ -84,9 +92,7 @@ export class UserService {
         await user.encrypt(this.configService, enctypt);
       }
 
-      const newUser = await this.userRepositoryImple.create(user);
-
-      return await this.authenticationService.generateTokenPair(newUser);
+      return await this.userRepositoryImple.create(user);
     } catch (error) {
       console.error(error);
       throw error;

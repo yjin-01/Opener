@@ -7,6 +7,7 @@ export interface UserRepository {
   findBy(user): Promise<User | null>;
   findById(userId): Promise<User | null>;
   findByNickname(nickname): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
   updateById(userDto, userId): Promise<number | undefined>;
   createFollow(userId: string, followDto: FollowDto): Promise<string | null>;
   deleteFollow(userId: string, followDto: FollowDto): Promise<number | null>;

@@ -25,4 +25,8 @@ export class LoginDto {
   getCode(): string {
     return this.code;
   }
+
+  getEmail(): string {
+    return this.email;
+  }
 }

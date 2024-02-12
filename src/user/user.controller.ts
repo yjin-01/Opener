@@ -11,6 +11,8 @@ import {
   NotFoundException,
   Param,
   Delete,
+  Inject,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,8 +28,10 @@ import {
   ApiUnauthorizedResponse,
   ApiParam,
 } from '@nestjs/swagger';
-import { TokenDto } from 'src/authentication/dto/token.dto';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
+import { AuthenticationService } from 'src/authentication/authentication.service';
+import { Response } from 'express';
+import { plainToInstance } from 'class-transformer';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
 import { UserSignupRequest } from './swagger/user.signup.request';
@@ -45,13 +49,18 @@ import { FollowDto } from './dto/follow.dto';
 import { FollowRequest } from './swagger/follow.request';
 import { FollowArtist } from './dto/follow.artist.dto';
 import { FollowArtistResponse } from './swagger/follow.artist.response';
+import { UserDto } from './dto/user.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
 @ApiTags('유저')
 @Controller('/users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    @Inject('AuthenticationService')
+    private readonly authService: AuthenticationService,
+  ) {}
 
   @Get('/:userId/artists')
   @ApiBearerAuth('accessToken')
@@ -238,9 +247,22 @@ export class UserController {
   })
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
-  ): Promise<TokenDto | null> {
+      @Res() res: Response,
+  ): Promise<UserDto | null> {
     try {
-      return await this.userService.createUser(userSignupDto);
+      const user = await this.userService.createUser(userSignupDto);
+      const token = await this.authService.generateTokenPair(user);
+
+      res.appendHeader(
+        'Set-Cookie',
+        `accessToken=${token!.accessToken}; Secure; HttpOnly`,
+      );
+      res.appendHeader(
+        'Set-Cookie',
+        `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
+      );
+
+      return plainToInstance(UserDto, user);
     } catch (error) {
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
