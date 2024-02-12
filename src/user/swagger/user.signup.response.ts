@@ -2,16 +2,21 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UserSignupResponse {
   @ApiProperty({
-    description: '새로 발급한 API token',
+    description: '회원 가입한 유저 아이디',
     default:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      'eyJhbGciOiJIUzI1NiIsICI6IkpXVCJ9.eyJzdWIiOiIxMjM0NkpvjM5MDIyfQ.SflKxwRJSMeKKf36POk6yJV_adQssw5c',
   })
-    accessToken: string;
+    userId: string;
 
   @ApiProperty({
-    description: 'token 재발급에 필요한 refreshToken',
-    default:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hYyBEb25hbGQiLCJpYXQiOjE1MTYyMzkwMjJ9.vcN3FbITYDKyPmz3R_eKXbfQ_YuVBuGR3fLodhHqLh8',
+    description: '회원 가입한 유저의 닉네임',
+    default: 'p1z7',
   })
-    refreshToken: string;
+    nickName: string;
+
+  @ApiProperty({
+    description: '회원 가입한 유저의 프로필 이미지',
+    default: 'http://image.co.kr',
+  })
+    profileImage: string;
 }
