@@ -9,4 +9,8 @@ export class FollowDto {
   toEntities(userId: string): UserToArtist[] {
     return this.artistIds.map((artistId) => plainToInstance(UserToArtist, { userId, artistId }));
   }
+
+  extract(): string[] {
+    return this.artistIds.slice();
+  }
 }

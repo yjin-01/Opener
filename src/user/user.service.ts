@@ -21,6 +21,24 @@ export class UserService {
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}
 
+  async unfollowArtist(
+    userId: string,
+    followDto: FollowDto,
+  ): Promise<number | null> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      return await this.userRepositoryImple.deleteFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async addArtist(
     userId: string,
     followDto: FollowDto,

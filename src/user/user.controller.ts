@@ -10,6 +10,7 @@ import {
   Patch,
   NotFoundException,
   Param,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -49,6 +50,52 @@ const Public = () => SetMetadata('isPublic', true);
 @Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Delete('/:userId/artists')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '팔로우 아티스트 삭제',
+    description: '아티스트 팔로우를 취소합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
+    type: 'uuid',
+    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+  })
+  @ApiBody({
+    type: FollowRequest,
+  })
+  @ApiOkResponse({
+    description: '아티스트 팔로우가 취소되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'token 없이 요청하였을 때 반환합니다',
+  })
+  @ApiNotFoundResponse({
+    description: '계정이 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버가 처리할 수 없을 때 반환합니다',
+  })
+  async deleteFollowArtist(
+    @Param('userId') userId: string,
+      @Body(new UserValidationPipe()) followDto: FollowDto,
+  ): Promise<number | null> {
+    try {
+      return await this.userService.unfollowArtist(userId, followDto);
+    } catch (error) {
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
 
   @Post('/:userId/artists')
   @ApiBearerAuth('accessToken')

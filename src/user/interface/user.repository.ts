@@ -8,4 +8,5 @@ export interface UserRepository {
   findByNickname(nickname): Promise<User | null>;
   updateById(userDto, userId): Promise<number | undefined>;
   createFollow(userId: string, followDto: FollowDto): Promise<string | null>;
+  deleteFollow(userId: string, followDto: FollowDto): Promise<number | null>;
 }
