@@ -220,12 +220,16 @@ export class ReviewRepositoryImpl implements ReviewRepository {
             .values(reviewPostDto)
             .execute();
 
+          const review = await transactionManager
+            .getRepository(Review)
+            .findOneBy(identifiers[0]);
+
           await transactionManager
             .getRepository(ReviewImage)
             .createQueryBuilder()
             .insert()
             .into(ReviewImage)
-            .values(reviewPostDto.toReviewImages(identifiers[0].id))
+            .values(reviewPostDto.toReviewImages(review?.id))
             .execute();
         },
       );

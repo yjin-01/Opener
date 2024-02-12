@@ -8,6 +8,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Generated,
 } from 'typeorm';
 import { Event } from 'src/event/entity/event.entity';
 import { User } from 'src/user/entity/user.entity';
@@ -20,6 +21,7 @@ export class Review {
     sequence: number;
 
   @Column('uuid')
+  @Generated('uuid')
     id: string;
 
   @Column('uuid', { name: 'user_id' })
