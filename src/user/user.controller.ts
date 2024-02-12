@@ -43,6 +43,8 @@ import { UserPasswordUpdateRequest } from './swagger/user.password.update.reques
 import { UserUpdatePasswordDto } from './dto/user.update.password';
 import { FollowDto } from './dto/follow.dto';
 import { FollowRequest } from './swagger/follow.request';
+import { FollowArtist } from './dto/follow.artist.dto';
+import { FollowArtistResponse } from './swagger/follow.artist.response';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -50,6 +52,50 @@ const Public = () => SetMetadata('isPublic', true);
 @Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('/:userId/artists')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '팔로우 아티스트 조회',
+    description: '팔로우한 아티스트 목록을 불러옵니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
+    type: 'uuid',
+    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+  })
+  @ApiOkResponse({
+    description: '아티스트 팔로우가 조회되었을 때 반환합니다',
+    type: FollowArtistResponse,
+    isArray: true,
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'token 없이 요청하였을 때 반환합니다',
+  })
+  @ApiNotFoundResponse({
+    description: '계정이 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버가 처리할 수 없을 때 반환합니다',
+  })
+  async getFollowArtists(
+    @Param('userId') userId: string,
+  ): Promise<FollowArtist[] | null> {
+    try {
+      return await this.userService.getMyArtistList(userId);
+    } catch (error) {
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
 
   @Delete('/:userId/artists')
   @ApiBearerAuth('accessToken')

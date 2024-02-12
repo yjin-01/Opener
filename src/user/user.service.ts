@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TokenDto } from 'src/authentication/dto/token.dto';
 import { AuthenticationService } from 'src/authentication/authentication.service';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
+import { plainToInstance } from 'class-transformer';
 import { UserRepository } from './interface/user.repository';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { enctypt } from './utils/encrypt';
@@ -11,6 +12,7 @@ import { UserNicknameResponse } from './dto/user.nickname.response';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { UserUpdatePasswordDto } from './dto/user.update.password';
 import { FollowDto } from './dto/follow.dto';
+import { FollowArtist } from './dto/follow.artist.dto';
 
 @Injectable()
 export class UserService {
@@ -20,6 +22,21 @@ export class UserService {
     private readonly authenticationService: AuthenticationService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}
+
+  async getMyArtistList(userId: string): Promise<FollowArtist[] | null> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      const result = await this.userRepositoryImple.findFollow(userId);
+      return result!.map((userArtist) => plainToInstance(FollowArtist, userArtist.artist));
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
   async unfollowArtist(
     userId: string,

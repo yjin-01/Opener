@@ -12,6 +12,23 @@ import { FollowDto } from './dto/follow.dto';
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async findFollow(userId: string): Promise<UserToArtist[] | []> {
+    try {
+      return (
+        (await this.entityManager
+          .getRepository(UserToArtist)
+          .createQueryBuilder('ua')
+          .select(['ua.id'])
+          .where('ua.userId = :userId', { userId })
+          .leftJoinAndSelect('ua.artist', 'a')
+          .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
+          .getMany()) || []
+      );
+    } catch (error) {
+      throw Error(error);
+    }
+  }
+
   async deleteFollow(
     userId: string,
     followDto: FollowDto,

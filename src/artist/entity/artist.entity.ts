@@ -1,3 +1,4 @@
+import { UserToArtist } from 'src/user/entity/user.artist.entity';
 import {
   Entity,
   Column,
@@ -5,6 +6,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('artists')
@@ -44,4 +47,8 @@ export class Artist {
     nullable: true,
   })
     deletedAt: Date;
+
+  @OneToMany(() => UserToArtist, (followArtist) => followArtist.artist)
+  @JoinColumn({ name: 'id', referencedColumnName: 'artist_id' })
+    followArtists: UserToArtist[];
 }

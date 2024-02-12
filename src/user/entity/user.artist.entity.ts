@@ -9,6 +9,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
+import { Artist } from 'src/artist/entity/artist.entity';
 import { User } from './user.entity';
 // https://stackoverflow.com/questions/46589957/es6-modules-and-circular-dependency/46593566#46593566
 @Exclude()
@@ -54,4 +55,11 @@ export class UserToArtist {
   @ManyToOne(() => User, (user) => user.userArtists)
   @JoinColumn({ name: 'user_id' })
     user: User;
+
+  @ManyToOne(() => Artist, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
+  @JoinColumn({ name: 'artist_id' })
+    artist: Artist;
 }

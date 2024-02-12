@@ -56,6 +56,7 @@ export class User {
     deletedAt: Date;
 
   @OneToMany(() => UserToArtist, (userArtist) => userArtist.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
     userArtists: UserToArtist[];
 
   @OneToMany(() => Event, (event) => event.user)
