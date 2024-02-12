@@ -26,6 +26,16 @@ export class GroupService {
     }
   }
 
+  async getGrouptByGroupId(groupId: string): Promise<Group | null> {
+    try {
+      const result = await this.groupRepository.findGroupByGroupId(groupId);
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async createGroup(groupInfo: GroupCreateRequest): Promise<Group | null> {
     try {
       const result = await this.groupRepository.createGroup(groupInfo);

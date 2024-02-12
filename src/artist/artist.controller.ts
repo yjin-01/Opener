@@ -9,16 +9,17 @@ import {
   ParseIntPipe,
   UseInterceptors,
   SetMetadata,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBody,
-  ApiCreatedResponse,
   ApiParam,
   ApiQuery,
   ApiBearerAuth,
   ApiBadRequestResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistService } from './artist.service';
@@ -38,8 +39,8 @@ const Public = () => SetMetadata('isPublic', true);
 export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
+  @Public()
   @Get('/group')
-  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹,아티스트(멤버 +  솔로) 목록 조회',
     description: `등록된 모든 그룹,아티스트를 조회합니다. 
@@ -49,7 +50,7 @@ export class ArtistController {
     name: 'getArtistListRequest',
     type: ArtistGroupListRequest,
   })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '등록된 그룹, 아티스트(멤버 +  솔로) 목록',
     type: ArtistListResponse,
   })
@@ -70,8 +71,8 @@ export class ArtistController {
     }
   }
 
+  @Public()
   @Get(':id')
-  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '그룹별 아티스트 조회',
     description: '특정 그룹의 모든 아티스트를 조회합니다.',
@@ -81,7 +82,7 @@ export class ArtistController {
     description: '조회할 그룹의 ID',
     type: String,
   })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '특정 그룹 아티스트 목록',
     type: [ArtistResponse],
   })
@@ -96,6 +97,37 @@ export class ArtistController {
     }
   }
 
+  @Public()
+  @Get()
+  @ApiOperation({
+    summary: '아티스트 Id를 이용한 아티스트 조회',
+    description: '아티스트를 조회합니다.',
+  })
+  @ApiQuery({
+    name: 'artists',
+    description: '조회할 아티스트들의 ID',
+    type: String,
+    example: '1fab0958-dafc-48,454d54d7-a6c8-4c',
+  })
+  @ApiOkResponse({
+    description: '아티스트 목록',
+    type: [ArtistResponse],
+  })
+  async getArtistByArtistId(
+    @Query('artists') artists: string,
+  ): Promise<Artist[] | null> {
+    try {
+      return await this.artistService.getArtistByArtistId(artists);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   @UseInterceptors(ArtistCreateResponseInterceptor)
   @Post()
   @ApiBearerAuth('accessToken')
@@ -104,7 +136,7 @@ export class ArtistController {
     description: '새로운 아티스트를 등록합니다.',
   })
   @ApiBody({ type: ArtistCreateRequest })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '정상 등록된 아티스트에 대한 정보',
     type: ArtistResponse,
   })
@@ -126,7 +158,7 @@ export class ArtistController {
     description: '회원 가입 전에 유저가 원하는 아티스트를 요청할 수 있습니다.',
   })
   @ApiBody({ type: ArtistRequest })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     description: '정상 등록된 아티스트에 대한 정보',
   })
   @ApiBadRequestResponse({

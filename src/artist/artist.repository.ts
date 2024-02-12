@@ -1,7 +1,6 @@
-/* eslint-disable no-useless-concat */
 import * as sql from 'mysql2';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { UserToArtist } from 'src/user/entity/user.artist.entity';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { Artist } from './entity/artist.entity';
@@ -24,6 +23,7 @@ export class ArtistRepository {
 
     const skip = (currentPage - 1) * itemsPerPage;
 
+    // eslint-disable-next-line max-len
     let query = 'SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
       + ' FROM artists a'
       + ' LEFT JOIN artist_groups ag on ag.artist_id = a.id'
@@ -31,6 +31,7 @@ export class ArtistRepository {
       + ' WHERE 1 = 1 ';
 
     if (keyword) {
+      // eslint-disable-next-line max-len
       query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
     }
 
@@ -44,11 +45,16 @@ export class ArtistRepository {
       query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
     }
 
+    let totalCount = await this.entityManager.query(query);
+
+    totalCount = totalCount.length;
+
     query += ` LIMIT ${itemsPerPage} OFFSET ${skip}`;
 
     const artistAndGroupList = await this.entityManager.query(query);
 
     return {
+      totalCount,
       page: currentPage,
       size: itemsPerPage,
       artistAndGroupList,
@@ -70,6 +76,14 @@ export class ArtistRepository {
         'a.artist_image AS artistImage',
       ])
       .getRawMany();
+
+    return artistList;
+  }
+
+  async findArtistByArtistId(artistIds: string[]): Promise<Artist[] | null> {
+    const artistList = await this.entityManager
+      .getRepository(Artist)
+      .find({ where: { id: In(artistIds) } });
 
     return artistList;
   }

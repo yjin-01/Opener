@@ -4,12 +4,12 @@ import { GroupSoloListResponse } from '../swagger/group.groupsololist.response';
 
 @Exclude()
 export class GroupListResponse {
-  // @ApiProperty({
-  //   description: '전체 개수',
-  //   default: 100,
-  // })
-  // @Expose()
-  //   totalCount: number;
+  @ApiProperty({
+    description: '전체 개수',
+    default: 100,
+  })
+  @Expose()
+    totalCount: number;
 
   @ApiProperty({
     description: '페이지',
