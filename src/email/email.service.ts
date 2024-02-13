@@ -17,7 +17,7 @@ export class EmailService {
     private readonly emailRepository: EmailRepository,
   ) {}
 
-  generateRandom() {
+  private generateRandom() {
     return Math.floor(Math.random() * 89999) + 10000;
   }
 
@@ -47,11 +47,11 @@ export class EmailService {
     }
   }
 
-  isMatch(request, original) {
+  private isMatch(request, original) {
     return request.verificationNumber === original.key;
   }
 
-  isTimeOver(original) {
+  private isTimeOver(original) {
     try {
       const originalMoment = moment(original.createdAt).subtract('hours', 9);
       const nowMoment = moment(Date.now());
@@ -63,23 +63,19 @@ export class EmailService {
   }
 
   async verificateEmail(verificationDto): Promise<number | undefined> {
-    try {
-      const original = await this.emailRepository.find(verificationDto);
-      if (!original) {
-        throw new NotExistException('not exist verification record');
-      }
+    const original = await this.emailRepository.find(verificationDto);
 
-      if (this.isTimeOver(original)) {
-        throw new InvalidException('verification time is over');
-      }
-
-      if (!this.isMatch(verificationDto, original)) {
-        throw new InvalidException('not equal verification number');
-      }
-      return await this.emailRepository.update(original);
-    } catch (error) {
-      console.error(error);
-      throw error;
+    if (!original) {
+      throw new NotExistException('not exist verification record');
     }
+
+    if (this.isTimeOver(original)) {
+      throw new InvalidException('verification time is over');
+    }
+
+    if (!this.isMatch(verificationDto, original)) {
+      throw new InvalidException('not equal verification number');
+    }
+    return this.emailRepository.update(original);
   }
 }
