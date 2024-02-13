@@ -48,6 +48,7 @@ import { EventUpdateApplicationRequestDto } from './dto/event.update.application
 import { EventUpdateApplication } from './entity/event.update.application.entity';
 import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
 import { Tag } from './entity/tag.entity';
+import { EventLikeStatusDto } from './dto/event.like-status.response.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -227,7 +228,7 @@ export class EventController {
     }
   }
 
-  @ApiBearerAuth('accessToken')
+  @Public()
   @ApiOperation({
     summary: '로그인 시 행사 좋아요 여부 확인',
     description: '로그인한 유저의 행사 좋아요 여부 알 수 있음',
@@ -235,22 +236,23 @@ export class EventController {
   @ApiQuery({
     name: 'userId',
     description: '이벤트 ID',
+    required: false,
   })
   @ApiQuery({
     name: 'eventId',
     description: '이벤트 ID',
   })
   @ApiOkResponse({
-    description: '좋아요 한 상태 시 true, 아닐 시 false',
-    type: Boolean,
+    description: '좋아요 상태 및 좋아요 수 반환',
+    type: EventLikeStatusDto,
   })
   @Get('/like')
   async checkEventLikeByUser(
     @Query('eventId', new EventValidationPipe()) eventId: string,
       @Query('userId', new EventValidationPipe()) userId: string,
-  ): Promise<boolean> {
+  ): Promise<EventLikeStatusDto> {
     try {
-      return await this.eventService.checkLikeStatus({ eventId, userId });
+      return await this.eventService.checkLikeStatus(eventId, userId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
