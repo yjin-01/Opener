@@ -230,8 +230,9 @@ export class EventController {
 
   @Public()
   @ApiOperation({
-    summary: '로그인 시 행사 좋아요 여부 확인',
-    description: '로그인한 유저의 행사 좋아요 여부 알 수 있음',
+    summary: '좋아요 여부 및 좋아요 수 조회',
+    description:
+      '로그인한 유저의 행사 좋아요 여부 및 행사의 좋아요 수 확인 가능 비로그인 시 status = false 반환',
   })
   @ApiQuery({
     name: 'userId',
