@@ -88,6 +88,10 @@ export class Event {
   @Column({ name: 'event_url' })
     eventUrl: string;
 
+  @ApiPropertyOptional({
+    description: '작성자 ID',
+    default: '',
+  })
   @Column({ name: 'user_id' })
     userId: string;
 
@@ -200,4 +204,10 @@ export class Event {
   })
   @Type(() => Number)
     likeCount: number;
+
+  @ApiPropertyOptional({
+    description: '로그인한 user의 좋아요 여부',
+  })
+  @Type(() => Boolean)
+    isLike: Boolean;
 }

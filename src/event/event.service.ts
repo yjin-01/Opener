@@ -3,11 +3,7 @@ import { ArtistRepository } from 'src/artist/artist.repository';
 import { EventRepository } from './event.repository';
 import { EventCreateRequest } from './dto/event.create.request';
 import { EventCreateResponse } from './dto/event.create.response';
-import { EventUserLikeListQueryDto } from './dto/event.user-like.list.dto';
-import {
-  EventListByCursorRespone,
-  EventListByPageResponseDto,
-} from './dto/event.list.response.dto';
+import { EventListByPageResponseDto } from './dto/event.list.response.dto';
 import { EventListQueryDto } from './dto/event.list.dto';
 import { EventUpdateRequest } from './dto/event.update.request';
 import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.request.dto';
@@ -15,6 +11,7 @@ import { EventUpdateApplicationRequestDto } from './dto/event.update.application
 import { EventUpdateApplication } from './entity/event.update.application.entity';
 import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
 import { Tag } from './entity/tag.entity';
+import { Event } from './entity/event.entity';
 
 @Injectable()
 export class EventService {
@@ -506,19 +503,15 @@ export class EventService {
     return event;
   }
 
-  async getEventByUserLike(
-    userId: string,
-    requirement: EventUserLikeListQueryDto,
-  ): Promise<EventListByCursorRespone> {
+  //  V2
+  async getEventByUserLike(userId: string, status: string): Promise<Event[]> {
     const eventList = await this.eventRepository.findEventLikeByUserId(
       userId,
-      requirement,
+      status,
     );
 
-    console.log('requirement', requirement);
-
     if (eventList.length === 0) {
-      return { cursorId: null, size: requirement.size, eventList: [] };
+      return [];
     }
 
     const targetEventIds = eventList.map((el) => el.id);
@@ -568,18 +561,84 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
-    // 페이지네이션
-    const hasNextData = eventList.length === Number(requirement.size);
-    let cursorId: BigInt | null;
-
-    if (hasNextData) {
-      cursorId = eventList[eventList.length - 1].sequence;
-    } else {
-      cursorId = null;
-    }
-
-    return { cursorId, size: requirement.size, eventList };
+    return eventList;
   }
+
+  // V1
+  // async getEventByUserLike(
+  //   userId: string,
+  //   requirement: EventUserLikeListQueryDto,
+  // ): Promise<EventListByCursorRespone> {
+  //   const eventList = await this.eventRepository.findEventLikeByUserId(
+  //     userId,
+  //     requirement,
+  //   );
+
+  //   console.log('requirement', requirement);
+
+  //   if (eventList.length === 0) {
+  //     return { cursorId: null, size: requirement.size, eventList: [] };
+  //   }
+
+  //   const targetEventIds = eventList.map((el) => el.id);
+
+  //   // 이벤트 이미지 조회
+  //   const imageList = await this.eventRepository.findEventImageByEventId({
+  //     targetEventIds,
+  //   });
+
+  //   eventList.forEach((event) => {
+  //     const eventImages: object[] = [];
+  //     imageList.forEach((image) => {
+  //       if (event.id === image.eventId) {
+  //         eventImages.push(image);
+  //       }
+  //     });
+  //     Object.assign(event, { eventImages });
+  //   });
+
+  //   // 이벤트에 참여하는 아티스트 조회
+  //   const artistList = await this.eventRepository.findEventTargetByEventId({
+  //     targetEventIds,
+  //   });
+
+  //   eventList.forEach((event) => {
+  //     const targetArtists: object[] = [];
+  //     artistList.forEach((artist) => {
+  //       if (event.id === artist.eventId) {
+  //         targetArtists.push(artist);
+  //       }
+  //     });
+  //     Object.assign(event, { targetArtists });
+  //   });
+
+  //   // 이벤트에 해당하는 태그(특전) 조회
+  //   const tagList = await this.eventRepository.findEventTagByEventId({
+  //     targetEventIds,
+  //   });
+
+  //   eventList.forEach((event) => {
+  //     const eventTags: object[] = [];
+  //     tagList.forEach((tag) => {
+  //       if (event.id === tag.eventId) {
+  //         eventTags.push(tag);
+  //       }
+  //     });
+  //     Object.assign(event, { eventTags });
+  //   });
+
+  //   // 페이지네이션
+  //   const hasNextData = eventList.length === Number(requirement.size);
+  //   let cursorId: BigInt | null;
+
+  //   if (hasNextData) {
+  //     cursorId = eventList[eventList.length - 1].sequence;
+  //   } else {
+  //     cursorId = null;
+  //   }
+
+  //   return { cursorId, size: requirement.size, eventList };
+  // }
 
   async createEvent(
     eventInfo: EventCreateRequest,

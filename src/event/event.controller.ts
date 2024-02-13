@@ -31,16 +31,11 @@ import { EventCreateRequest } from './dto/event.create.request';
 import { EventCreateResponse } from './dto/event.create.response';
 import { EventListRequest } from './swagger/event.list.request';
 import { EventListQueryDto } from './dto/event.list.dto';
-import {
-  EventListByCursorRespone,
-  EventListByPageRespone,
-} from './swagger/event.list.response';
-import { EventUserLikeListQueryDto } from './dto/event.user-like.list.dto';
+import { EventListByPageRespone } from './swagger/event.list.response';
 import { EventListByPageResponseDto } from './dto/event.list.response.dto';
 import { EventValidationPipe } from './event.validation.pipe';
 import { Event } from './entity/event.entity';
 import {
-  EventListByCursorResponseInterceptor,
   EventListByPageResponseInterceptor,
   EventResponseInterceptor,
 } from './interceptor/event.list.response.interceptor';
@@ -262,6 +257,7 @@ export class EventController {
     }
   }
 
+  // V2
   @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '유저가 좋아요한 행사 목록 조회',
@@ -292,42 +288,97 @@ export class EventController {
         description: '종료된 이벤트 조회 시',
         value: '종료',
       },
+      example5: {
+        description: '종료된 행사 제외',
+        value: '종료제외',
+      },
     },
-  })
-  @ApiQuery({
-    name: 'targetDate',
-    description: '조회할 날짜',
-    required: false,
-    example: '2024-01-02',
-  })
-  @ApiQuery({
-    name: 'cursorId',
-    description: '커서 번호',
-    required: false,
-  })
-  @ApiQuery({
-    name: 'size',
-    description: '한 페이지당 갯수',
-    required: false,
   })
   @ApiOkResponse({
     description: '행사 목록 조회',
-    type: EventListByCursorRespone,
+    type: [Event],
   })
-  @UseInterceptors(EventListByCursorResponseInterceptor)
+  @UseInterceptors(EventResponseInterceptor)
   @Get(':userId/like')
   async getEventByUser(
     @Param('userId') userId: string,
-      @Query() requirement: EventUserLikeListQueryDto,
-  ): Promise<EventListByCursorRespone> {
+      @Query('status') status: string,
+  ): Promise<Event[]> {
     try {
-      console.log('userId', userId);
-      return await this.eventService.getEventByUserLike(userId, requirement);
+      return await this.eventService.getEventByUserLike(userId, status);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
     }
   }
+
+  // V1
+  // @ApiBearerAuth('accessToken')
+  // @ApiOperation({
+  //   summary: '유저가 좋아요한 행사 목록 조회',
+  //   description: '마이페이지',
+  // })
+  // @ApiParam({
+  //   name: 'userId',
+  //   description: '유저의 Id',
+  // })
+  // @ApiQuery({
+  //   name: 'status',
+  //   description: '이벤트 진행 상태에 대한 필터',
+  //   required: false,
+  //   examples: {
+  //     example1: {
+  //       description: '모든 이벤트 조회',
+  //       value: '',
+  //     },
+  //     example2: {
+  //       description: '예정된 이벤트 조회 시',
+  //       value: '예정',
+  //     },
+  //     example3: {
+  //       description: '진행중인 이벤트 조회 시',
+  //       value: '진행중',
+  //     },
+  //     example4: {
+  //       description: '종료된 이벤트 조회 시',
+  //       value: '종료',
+  //     },
+  //   },
+  // })
+  // @ApiQuery({
+  //   name: 'targetDate',
+  //   description: '조회할 날짜',
+  //   required: false,
+  //   example: '2024-01-02',
+  // })
+  // @ApiQuery({
+  //   name: 'cursorId',
+  //   description: '커서 번호',
+  //   required: false,
+  // })
+  // @ApiQuery({
+  //   name: 'size',
+  //   description: '한 페이지당 갯수',
+  //   required: false,
+  // })
+  // @ApiOkResponse({
+  //   description: '행사 목록 조회',
+  //   type: EventListByCursorRespone,
+  // })
+  // @UseInterceptors(EventListByCursorResponseInterceptor)
+  // @Get(':userId/like')
+  // async getEventByUser(
+  //   @Param('userId') userId: string,
+  //     @Query() requirement: EventUserLikeListQueryDto,
+  // ): Promise<EventListByCursorRespone> {
+  //   try {
+  //     console.log('userId', userId);
+  //     return await this.eventService.getEventByUserLike(userId, requirement);
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new InternalServerErrorException(error);
+  //   }
+  // }
 
   @Public()
   @ApiOperation({

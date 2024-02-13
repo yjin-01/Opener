@@ -16,7 +16,6 @@ import { EventImage } from './entity/event.image.entity';
 import { EventCreateResponse } from './dto/event.create.response';
 import { Tag } from './entity/tag.entity';
 import { EventLike } from './entity/event.like.entity';
-import { EventUserLikeListQueryDto } from './dto/event.user-like.list.dto';
 import { EventListByPageResponseDto } from './dto/event.list.response.dto';
 import { EventUpdateRequest } from './dto/event.update.request';
 import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.request.dto';
@@ -484,46 +483,49 @@ export class EventRepository {
   // 유저가 좋아요 누른 이벤트 조회
   async findEventLikeByUserId(
     userId: string,
-    requirement: EventUserLikeListQueryDto,
+    status: string,
   ): Promise<Event[]> {
     try {
-      const {
-        status, targetDate, cursorId, size,
-      } = requirement;
+      // const { status, targetDate, cursorId, size } = requirement;
 
-      const likeList = await this.entityManager.getRepository(EventLike).find({
-        where: { userId },
-      });
+      // const likeList = await this.entityManager.getRepository(EventLike).find({
+      //   where: { userId },
+      // });
 
-      const targetEventIds = likeList.map((el) => el.eventId);
+      // const targetEventIds = likeList.map((el) => el.eventId);
 
-      if (likeList.length === 0) {
-        return [];
-      }
+      // if (likeList.length === 0) {
+      //   return [];
+      // }
 
       const query = this.entityManager
         .getRepository(Event)
         .createQueryBuilder('e')
+        .leftJoinAndSelect('e.eventLikes', 'el')
         .select([
-          'e.id',
-          'e.sequence',
-          'e.placeName',
-          'e.description',
-          'e.eventType',
-          'e.startDate',
-          'e.endDate',
-          'e.eventUrl',
-          'e.organizerSns',
-          'e.snsType',
-          'e.address',
-          'e.addressDetail',
+          'e.id AS id',
+          'e.sequence AS sequence',
+          'e.userId AS userId',
+          'e.placeName AS placeName',
+          'e.description AS description',
+          'e.eventType AS eventType ',
+          'e.startDate AS startDate',
+          'e.endDate AS endDate',
+          'e.eventUrl AS eventUrl',
+          'e.organizerSns AS organizerSns',
+          'e.snsType AS snsType',
+          'e.address AS address',
+          'e.addressDetail AS addressDetail',
+          'e.createdAt AS createdAt',
         ])
-        .where('e.id IN (:...targetEventIds)', { targetEventIds });
+        .addSelect(['COUNT(el.id) AS likeCount'])
+        .addSelect(['true AS isLike'])
+        .where('el.userId = :userId', { userId });
 
-      if (targetDate) {
-        query.andWhere('e.startDate <= :targetDate', { targetDate });
-        query.andWhere('e.endDate >= :targetDate', { targetDate });
-      }
+      // if (targetDate) {
+      //   query.andWhere('e.startDate <= :targetDate', { targetDate });
+      //   query.andWhere('e.endDate >= :targetDate', { targetDate });
+      // }
 
       // 현재 날짜 기준으로 검색
       const today = moment().format('YYYY-MM-DD'); // 현재 날짜 및 시간
@@ -535,17 +537,20 @@ export class EventRepository {
         query.andWhere('e.endDate >= :today', { today });
       } else if (status === '예정') {
         query.andWhere('e.startDate > :today', { today });
+      } else if (status === '종료제외') {
+        query.andWhere('e.endDate > :today', { today });
       }
 
-      if (cursorId) {
-        query.andWhere(`e.sequence < ${cursorId}`);
-      }
+      // if (cursorId) {
+      //   query.andWhere(`e.sequence < ${cursorId}`);
+      // }
 
+      query.groupBy('e.id');
       query.orderBy('e.sequence', 'DESC');
 
-      query.limit(size);
+      // query.limit(size);
 
-      const eventList = await query.getMany();
+      const eventList = await query.getRawMany();
 
       return eventList;
     } catch (error) {
