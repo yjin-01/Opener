@@ -460,7 +460,7 @@ export class EventRepository {
     try {
       const event = await this.entityManager.getRepository(Event).findOne({
         where: { id: eventId },
-        relations: ['eventImages', 'user'],
+        relations: ['eventImages'],
       });
 
       const likeCount = await this.entityManager
@@ -519,7 +519,6 @@ export class EventRepository {
           'e.createdAt AS createdAt',
         ])
         .addSelect(['COUNT(el.id) AS likeCount'])
-        .addSelect(['true AS isLike'])
         .where('el.userId = :userId', { userId });
 
       // if (targetDate) {
@@ -1123,6 +1122,22 @@ export class EventRepository {
 
       // 좋아요 한 경우
       return true;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async findCountLike(eventId: string): Promise<number> {
+    try {
+      const like = await this.entityManager
+        .getRepository(EventLike)
+        .findAndCount({ where: { eventId } });
+
+      console.log(like);
+
+      // 좋아요 수
+      return like[1];
     } catch (error) {
       console.error(error);
       throw error;

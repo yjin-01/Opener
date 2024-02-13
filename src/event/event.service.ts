@@ -12,6 +12,7 @@ import { EventUpdateApplication } from './entity/event.update.application.entity
 import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
 import { Tag } from './entity/tag.entity';
 import { Event } from './entity/event.entity';
+import { EventLikeStatusDto } from './dto/event.like-status.response.dto';
 
 @Injectable()
 export class EventService {
@@ -756,14 +757,23 @@ export class EventService {
     }
   }
 
-  async checkLikeStatus({ eventId, userId }): Promise<boolean> {
+  async checkLikeStatus(
+    eventId: string,
+    userId: string,
+  ): Promise<EventLikeStatusDto> {
     try {
-      const result = await this.eventRepository.checkLikeStatus({
-        eventId,
-        userId,
-      });
+      let status: boolean = false;
 
-      return result;
+      if (userId) {
+        status = await this.eventRepository.checkLikeStatus({
+          eventId,
+          userId,
+        });
+      }
+
+      const likeCount = await this.eventRepository.findCountLike(eventId);
+
+      return { status, likeCount };
     } catch (error) {
       console.error(error);
       throw error;

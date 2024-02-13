@@ -162,10 +162,6 @@ export class Event {
   })
     deletedAt: Date;
 
-  @ApiPropertyOptional({
-    type: Object,
-    name: 'user',
-  })
   @JoinColumn({ name: 'user_id' })
   @ManyToOne(() => User, (user) => user.event)
     user: string;
@@ -204,10 +200,4 @@ export class Event {
   })
   @Type(() => Number)
     likeCount: number;
-
-  @ApiPropertyOptional({
-    description: '로그인한 user의 좋아요 여부',
-  })
-  @Type(() => Boolean)
-    isLike: Boolean;
 }
