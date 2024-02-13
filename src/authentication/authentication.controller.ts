@@ -23,6 +23,7 @@ import { InvalidException } from 'src/user/exception/invalid.exception';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
+import { plainToClass } from 'class-transformer';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
@@ -73,8 +74,8 @@ export class AuthenticationController {
       @Res({ passthrough: true }) res: Response,
   ): Promise<UserDto | null> {
     try {
-      const token = await this.authenticationService.login(loginDto);
-      const user = await this.userService.getUser(loginDto.getEmail());
+      const user = await this.authenticationService.login(loginDto);
+      const token = await this.authenticationService.generateTokenPair(user);
 
       res.appendHeader(
         'Set-Cookie',
@@ -85,7 +86,7 @@ export class AuthenticationController {
         `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
       );
 
-      return user;
+      return plainToClass(UserDto, user);
     } catch (err) {
       if (
         err instanceof InvalidEmailException

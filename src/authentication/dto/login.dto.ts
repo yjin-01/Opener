@@ -1,10 +1,7 @@
-import { IsEmail } from 'class-validator';
-
 export class LoginDto {
   code: string;
 
-  @IsEmail()
-    email: string;
+  email: string;
 
   signinMethod: string;
 
@@ -20,6 +17,10 @@ export class LoginDto {
 
   isOpener(): boolean {
     return this.signinMethod === 'opener';
+  }
+
+  isNaver(): boolean {
+    return this.signinMethod === 'naver';
   }
 
   getCode(): string {

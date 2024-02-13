@@ -34,6 +34,7 @@ module.exports = {
         "class-methods-use-this": "off",
         "import/no-cycle": "off",
         "max-classes-per-file": "off",
-        "max-len": ["error", { "code": 120 }]
+        "max-len": ["error", { "code": 120 }],
+        "import/no-extraneous-dependencies": "off"
     }
 }

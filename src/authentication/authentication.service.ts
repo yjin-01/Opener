@@ -6,6 +6,7 @@ import { isMatch } from 'src/user/utils/encrypt';
 import { InvalidException } from 'src/user/exception/invalid.exception';
 import { plainToInstance } from 'class-transformer';
 import { UserSignupDto } from 'src/user/dto/user.signup.dto';
+import { User } from 'src/user/entity/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { UserInformationApiFactory } from './api/userinformation.factory';
 import { TokenDto } from './dto/token.dto';
@@ -56,7 +57,7 @@ export class AuthenticationService {
     }
   }
 
-  async login(loginDto: LoginDto): Promise<any | null> {
+  async login(loginDto: LoginDto): Promise<User | null> {
     try {
       // TODO 리팩터링
       if (loginDto.isOpener()) {
@@ -70,23 +71,26 @@ export class AuthenticationService {
           throw new InvalidException('password not valid');
         }
 
-        return await this.generateTokenPair(opener);
+        return opener;
       }
 
       const tokenInfo = await UserInformationApiFactory.getApi(
         loginDto,
         this.configService,
       ).getTokenInfo();
+
       const user = await this.userRepository.findBy(tokenInfo);
 
       if (!user) {
         const newUser = await this.userRepository.create(
-          plainToInstance(UserSignupDto, tokenInfo),
+          plainToInstance(UserSignupDto, tokenInfo, {
+            exposeDefaultValues: true,
+          }),
         );
-        return await this.generateTokenPair(newUser);
+        return newUser;
       }
 
-      return await this.generateTokenPair(user);
+      return user;
     } catch (error) {
       console.error(error);
       throw error;
