@@ -248,7 +248,7 @@ export class UserController {
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
       @Res() res: Response,
-  ): Promise<UserDto | null> {
+  ): Promise<Response<UserDto> | null> {
     try {
       const user = await this.userService.createUser(userSignupDto);
       const token = await this.authService.generateTokenPair(user);
@@ -261,8 +261,7 @@ export class UserController {
         'Set-Cookie',
         `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
       );
-
-      return plainToInstance(UserDto, user);
+      return res.json(plainToInstance(UserDto, user));
     } catch (error) {
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
@@ -270,7 +269,6 @@ export class UserController {
       if (error instanceof ExistException) {
         throw new BadRequestException(error);
       }
-      console.error(error);
       throw new InternalServerErrorException(error);
     }
   }
