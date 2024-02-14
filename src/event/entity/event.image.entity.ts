@@ -9,6 +9,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { Event } from './event.entity';
 
 @Entity('event_images')
@@ -33,6 +34,14 @@ export class EventImage {
   })
   @Column({ name: 'image_url' })
     imageUrl: string;
+
+  @ApiPropertyOptional({
+    description: '순서 정보',
+    default: '1',
+  })
+  @Type(() => Number)
+  @Column()
+    sequence: number;
 
   @ApiPropertyOptional({
     description: '메인 이미지 여부',
