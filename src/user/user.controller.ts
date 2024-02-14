@@ -248,7 +248,7 @@ export class UserController {
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
       @Res() res: Response,
-  ): Promise<Response<UserDto> | null> {
+  ): Promise<void | null> {
     try {
       const user = await this.userService.createUser(userSignupDto);
       const token = await this.authService.generateTokenPair(user);
@@ -261,7 +261,7 @@ export class UserController {
         'Set-Cookie',
         `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
       );
-      return res.json(plainToInstance(UserDto, user));
+      res.json(plainToInstance(UserDto, user));
     } catch (error) {
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);

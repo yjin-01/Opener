@@ -4,11 +4,11 @@ export class AuthenticationLoginRequest {
   @ApiPropertyOptional({
     description: 'oauth2.0에 사용할 code',
     default:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QTOk6yJV_adQssw5c',
   })
     code: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '클라이언트에서 인증한 이메일',
     default: 'test@test.com',
   })

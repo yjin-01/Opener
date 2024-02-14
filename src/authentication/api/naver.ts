@@ -53,7 +53,6 @@ export class NaverApi implements UserInformationApi {
         client_id: this.configService.get('NAVER_CLIENT'),
         client_secret: this.configService.get('NAVER_CLIENT_SECRET'),
         grant_type: 'authorization_code',
-        state: '1234',
         code: this.loginDto.getCode(),
       });
 

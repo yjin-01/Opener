@@ -72,7 +72,7 @@ export class AuthenticationController {
   async signin(
     @Body(new AuthenticationValidationPipe()) loginDto: LoginDto,
       @Res({ passthrough: true }) res: Response,
-  ): Promise<Response<UserDto> | null> {
+  ): Promise<void | null> {
     try {
       const user = await this.authenticationService.login(loginDto);
       const token = await this.authenticationService.generateTokenPair(user);
@@ -85,7 +85,7 @@ export class AuthenticationController {
         'Set-Cookie',
         `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
       );
-      return res.json(plainToClass(UserDto, user));
+      res.json(plainToClass(UserDto, user));
     } catch (err) {
       if (
         err instanceof InvalidEmailException

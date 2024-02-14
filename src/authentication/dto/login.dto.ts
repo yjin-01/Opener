@@ -1,11 +1,15 @@
+import { IsOptional } from 'class-validator';
+
 export class LoginDto {
   code: string;
 
-  email: string;
+  @IsOptional()
+    email: string;
 
   signinMethod: string;
 
-  password: string;
+  @IsOptional()
+    password: string;
 
   isKakao(): boolean {
     return this.signinMethod === 'kakao';
