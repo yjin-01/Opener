@@ -14,6 +14,7 @@ import { Event } from 'src/event/entity/event.entity';
 import { User } from 'src/user/entity/user.entity';
 import { ReviewImage } from './review.imege.entity';
 import { ReviewLike } from './review.like.entity';
+import { ReviewClaim } from './review.claim.entity';
 
 @Entity('reviews')
 export class Review {
@@ -83,4 +84,8 @@ export class Review {
   @OneToMany(() => ReviewLike, (like) => like.review)
   @JoinColumn({ name: 'id', referencedColumnName: 'review_id' })
     reviewLikes: ReviewLike[];
+
+  @OneToMany(() => ReviewClaim, (claim) => claim.review)
+  @JoinColumn({ name: 'id', referencedColumnName: 'review_id' })
+    reviewClaims: ReviewClaim[];
 }

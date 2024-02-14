@@ -1,3 +1,4 @@
+import { ReviewClaimDto } from './dto/review.claim.dto';
 import { ReviewImageDto } from './dto/review.image.dto';
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { Review } from './entity/review.entity';
@@ -18,4 +19,8 @@ export interface ReviewRepository {
     reviewImageDto: ReviewImageDto,
   ): Promise<number | null>;
   findWithImages(reviewId: string): Promise<Review | null>;
+  createClaim(
+    reviewClaimDto: ReviewClaimDto,
+    reviewId: string,
+  ): Promise<string>;
 }

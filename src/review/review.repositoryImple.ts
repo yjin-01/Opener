@@ -8,10 +8,30 @@ import { ReviewImage } from './entity/review.imege.entity';
 import { ReviewLike } from './entity/review.like.entity';
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { ReviewImageDto } from './dto/review.image.dto';
+import { ReviewClaimDto } from './dto/review.claim.dto';
+import { ReviewClaim } from './entity/review.claim.entity';
 
 @Injectable()
 export class ReviewRepositoryImpl implements ReviewRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async createClaim(
+    reviewClaimDto: ReviewClaimDto,
+    reviewId: string,
+  ): Promise<string> {
+    try {
+      const { identifiers } = await this.entityManager
+        .getRepository(ReviewClaim)
+        .createQueryBuilder()
+        .insert()
+        .into(ReviewClaim)
+        .values([reviewClaimDto.toEntity(reviewId)])
+        .execute();
+      return identifiers[0].id;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
   async findWithImages(reviewId: string): Promise<Review | null> {
     try {
