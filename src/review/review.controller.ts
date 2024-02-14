@@ -51,6 +51,8 @@ import { ReviewUpdateRequest } from './swagger/review.update.request';
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { ReviewImageRequest } from './swagger/review.image.request';
 import { ReviewImageDto } from './dto/review.image.dto';
+import { ReviewClaimDto } from './dto/review.claim.dto';
+import { ReviewClaimRequest } from './swagger/review.claim.request';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -142,6 +144,47 @@ export class ReviewController {
         reviewId,
         reviewImageDto,
       );
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  @Post('/:reviewId/claims')
+  @ApiBearerAuth('accessToken')
+  @ApiParam({
+    name: 'reviewId',
+    type: 'uuid',
+    description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
+  })
+  @ApiOperation({
+    summary: '리뷰 신고',
+    description: '기존 리뷰를 신고합니다',
+  })
+  @ApiBody({ type: ReviewClaimRequest })
+  @ApiCreatedResponse({
+    description: '신고 내용이 저장되었을 때 반환합니다',
+  })
+  @ApiUnauthorizedResponse({
+    description: '토큰 없이 요청하였을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: ReviewBadRequest,
+  })
+  @ApiNotFoundResponse({
+    description: '유저 또는 리뷰가 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async addReviewClaim(
+    @Param('reviewId') reviewId: string,
+      @Body(new ReviewValidationPipe()) reviewClaimDto: ReviewClaimDto,
+  ): Promise<string | null> {
+    try {
+      return await this.reviewService.addClaim(reviewId, reviewClaimDto);
     } catch (err) {
       console.error(err);
       throw new InternalServerErrorException(err);

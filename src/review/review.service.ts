@@ -17,6 +17,7 @@ import {
 import { ReviewUpdateDto } from './dto/review.update.dto';
 import { ReviewImageDto } from './dto/review.image.dto';
 import { Review } from './entity/review.entity';
+import { ReviewClaimDto } from './dto/review.claim.dto';
 
 @Injectable()
 export class ReviewService {
@@ -36,6 +37,19 @@ export class ReviewService {
 
     if (!review || !user) {
       throw new NotExistException('not exist field');
+    }
+  }
+
+  async addClaim(
+    reviewId: string,
+    reviewClaimDto: ReviewClaimDto,
+  ): Promise<string | null> {
+    try {
+      await this.exists(reviewId, reviewClaimDto.getUserId());
+      return await this.reviewRepository.createClaim(reviewClaimDto, reviewId);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
