@@ -21,6 +21,19 @@ export class UserService {
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
   ) {}
 
+  async deleteUser(userId: string, tokenUserId: string): Promise<void> {
+    try {
+      if (userId !== tokenUserId) {
+        throw new InvalidException('invalid user and token');
+      }
+
+      return await this.userRepositoryImple.delete(userId);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async getUser(email: string): Promise<UserDto | null> {
     const user = this.userRepositoryImple.findByEmail(email);
 

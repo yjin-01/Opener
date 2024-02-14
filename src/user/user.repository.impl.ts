@@ -12,6 +12,19 @@ import { FollowDto } from './dto/follow.dto';
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
+  async delete(userId: string): Promise<void> {
+    try {
+      return await this.entityManager.transaction(async (transactioManager) => {
+        await Promise.all([
+          transactioManager.getRepository(User).delete({ id: userId }),
+          transactioManager.getRepository(UserToArtist).delete({ userId }),
+        ]);
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     try {
       return await this.entityManager.getRepository(User).findOneBy({ email });

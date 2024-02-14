@@ -13,6 +13,7 @@ import {
   Delete,
   Inject,
   Res,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,7 +31,7 @@ import {
 } from '@nestjs/swagger';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { AuthenticationService } from 'src/authentication/authentication.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { UserService } from './user.service';
 import { UserValidationPipe } from './user.validtion.pipe';
@@ -52,6 +53,12 @@ import { FollowArtistResponse } from './swagger/follow.artist.response';
 import { UserDto } from './dto/user.dto';
 
 const Public = () => SetMetadata('isPublic', true);
+
+interface CustomRequest extends Request {
+  user: {
+    userId: string;
+  };
+}
 
 @ApiTags('유저')
 @Controller('/users')
@@ -262,6 +269,37 @@ export class UserController {
         `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
       );
       res.json(plainToInstance(UserDto, user));
+    } catch (error) {
+      if (error instanceof InvalidException) {
+        throw new BadRequestException(error);
+      }
+      if (error instanceof ExistException) {
+        throw new BadRequestException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Delete('/:userId')
+  @ApiOperation({
+    summary: '회원 탈퇴',
+    description: '회원 정보가 삭제됩니다',
+  })
+  @ApiBody({ type: UserSignupRequest })
+  @ApiOkResponse({
+    description: '유저가 삭제되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  async signOut(
+    @Param('userId') userId: string,
+      @Req() req: CustomRequest,
+  ): Promise<void | null> {
+    try {
+      return await this.userService.deleteUser(userId, req.user.userId);
     } catch (error) {
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
