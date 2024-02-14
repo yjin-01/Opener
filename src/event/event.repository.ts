@@ -312,6 +312,7 @@ export class EventRepository {
     }
   }
 
+  // 새로 등록된 이벤트 조회
   async findNewEventList(): Promise<Event[]> {
     try {
       const query = this.entityManager
@@ -352,14 +353,21 @@ export class EventRepository {
     }
   }
 
-  // 이벤트 참여 아티스트 조회
+  // 이벤트 이미지 조회
   async findEventImageByEventId({ targetEventIds }) {
     try {
       const imageList = await this.entityManager
         .getRepository(EventImage)
         .createQueryBuilder('ei')
-        .select(['ei.id', 'ei.imageUrl', 'ei.isMain', 'ei.eventId'])
+        .select([
+          'ei.id',
+          'ei.imageUrl',
+          'ei.isMain',
+          'ei.eventId',
+          'ei.sequence',
+        ])
         .where('ei.eventId IN (:...targetEventIds)', { targetEventIds })
+        .orderBy('ei.sequence', 'ASC')
         .getMany();
 
       return imageList;
@@ -458,10 +466,13 @@ export class EventRepository {
   // 이벤트 상세 조회
   async findOneEventByEventId(eventId: string) {
     try {
-      const event = await this.entityManager.getRepository(Event).findOne({
-        where: { id: eventId },
-        relations: ['eventImages'],
-      });
+      const event = await this.entityManager
+        .getRepository(Event)
+        .createQueryBuilder('e')
+        .leftJoinAndSelect('e.eventImages', 'ei')
+        .where('e.id = :eventId', { eventId })
+        .orderBy('ei.sequence', 'ASC')
+        .getOne();
 
       const likeCount = await this.entityManager
         .getRepository(EventLike)
@@ -472,6 +483,8 @@ export class EventRepository {
       if (event) {
         event.likeCount = likeCount;
       }
+
+      console.log(event);
 
       return event;
     } catch (error) {
@@ -486,18 +499,6 @@ export class EventRepository {
     status: string,
   ): Promise<Event[]> {
     try {
-      // const { status, targetDate, cursorId, size } = requirement;
-
-      // const likeList = await this.entityManager.getRepository(EventLike).find({
-      //   where: { userId },
-      // });
-
-      // const targetEventIds = likeList.map((el) => el.eventId);
-
-      // if (likeList.length === 0) {
-      //   return [];
-      // }
-
       const query = this.entityManager
         .getRepository(Event)
         .createQueryBuilder('e')
@@ -622,12 +623,14 @@ export class EventRepository {
                   eventId: id,
                   imageUrl: el,
                   isMain: true,
+                  sequence: idx,
                 };
               }
               return {
                 eventId: id,
                 imageUrl: el,
                 isMain: false,
+                sequence: idx,
               };
             });
 
@@ -694,9 +697,10 @@ export class EventRepository {
             .execute();
 
           // 3. 태그 정보가 있는 경우 저장
-          if (tags && tags.length !== 0) {
-            await transactioManager.getRepository(EventTag).delete({ eventId });
+          // 기존 태그 삭제
+          await transactioManager.getRepository(EventTag).delete({ eventId });
 
+          if (tags && tags.length !== 0) {
             const tagDataToInsert = tags.map((el) => ({
               tagId: el,
               eventId,
@@ -712,23 +716,25 @@ export class EventRepository {
           }
 
           // 4. 행사 이미지 정보가 있는 경우 저장
-          if (eventImages && eventImages.length !== 0) {
-            await transactioManager
-              .getRepository(EventImage)
-              .delete({ eventId });
 
+          // 기존 정보 삭제
+          await transactioManager.getRepository(EventImage).delete({ eventId });
+
+          if (eventImages && eventImages.length !== 0) {
             const imageDataToInsert = eventImages.map((el, idx) => {
               if (idx === 0) {
                 return {
                   eventId,
                   imageUrl: el,
                   isMain: true,
+                  sequence: idx,
                 };
               }
               return {
                 eventId,
                 imageUrl: el,
                 isMain: false,
+                sequence: idx,
               };
             });
 
@@ -970,11 +976,11 @@ export class EventRepository {
               const updateData = JSON.parse(application.updateData);
 
               if (approvalResult.updateCategory === 'tags') {
-                if (updateData.tags && updateData.tags.length !== 0) {
-                  await transactioManager
-                    .getRepository(EventTag)
-                    .delete({ eventId: application.eventId });
+                await transactioManager
+                  .getRepository(EventTag)
+                  .delete({ eventId: application.eventId });
 
+                if (updateData.tags && updateData.tags.length !== 0) {
                   const tagDataToInsert = updateData.tags.map((el: string) => ({
                     tagId: el,
                     eventId: application.eventId,
@@ -989,14 +995,14 @@ export class EventRepository {
                     .execute();
                 }
               } else if (approvalResult.updateCategory === 'eventImages') {
+                await transactioManager
+                  .getRepository(EventImage)
+                  .delete({ eventId: application.eventId });
+
                 if (
                   updateData.eventImages
                   && updateData.eventImages.length !== 0
                 ) {
-                  await transactioManager
-                    .getRepository(EventImage)
-                    .delete({ eventId: application.eventId });
-
                   const imageDataToInsert = updateData.eventImages.map(
                     (el: string, idx: number) => {
                       if (idx === 0) {
@@ -1004,12 +1010,14 @@ export class EventRepository {
                           eventId: application.eventId,
                           imageUrl: el,
                           isMain: true,
+                          sequence: idx,
                         };
                       }
                       return {
                         eventId: application.eventId,
                         imageUrl: el,
                         isMain: false,
+                        sequence: idx,
                       };
                     },
                   );
