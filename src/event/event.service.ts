@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ArtistRepository } from 'src/artist/artist.repository';
+import { UserRepository } from 'src/user/interface/user.repository';
 import { EventRepository } from './event.repository';
 import { EventCreateRequest } from './dto/event.create.request';
 import { EventCreateResponse } from './dto/event.create.response';
@@ -13,12 +14,15 @@ import { EventUpdateApplicationDetailDto } from './dto/event.update.application.
 import { Tag } from './entity/tag.entity';
 import { Event } from './entity/event.entity';
 import { EventLikeStatusDto } from './dto/event.like-status.response.dto';
+import { EventClaimDto } from './dto/event.claim.create.dto';
 
 @Injectable()
 export class EventService {
   constructor(
     private readonly eventRepository: EventRepository,
     private readonly artistRepository: ArtistRepository,
+    @Inject('UserRepository')
+    private readonly userRepository: UserRepository,
   ) {}
 
   async getEventList(
@@ -698,12 +702,10 @@ export class EventService {
 
   async approveEventUpdate(
     eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
-    userId: string,
   ): Promise<EventUpdateApplication | null> {
     try {
       const result = await this.eventRepository.approveEventUpdate(
         eventUpdateApprovalRequestDto,
-        userId,
       );
 
       return result;
@@ -790,6 +792,23 @@ export class EventService {
       const tagIds = tags ? tags.split(',') : null;
 
       const result = await this.eventRepository.findTag(tagIds);
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async createEventClaim(eventClaimDto: EventClaimDto): Promise<String | null> {
+    try {
+      const user = this.userRepository.findById(eventClaimDto.userId);
+
+      if (!user) {
+        throw new NotFoundException('User not exist');
+      }
+
+      const result = await this.eventRepository.createEventClaim(eventClaimDto);
 
       return result;
     } catch (error) {

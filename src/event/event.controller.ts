@@ -10,7 +10,6 @@ import {
   UseInterceptors,
   Put,
   NotFoundException,
-  Req,
   ConflictException,
 } from '@nestjs/common';
 import {
@@ -25,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiInternalServerErrorResponse,
   ApiConflictResponse,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { EventService } from './event.service';
 import { EventCreateRequest } from './dto/event.create.request';
@@ -49,6 +49,7 @@ import { EventUpdateApplication } from './entity/event.update.application.entity
 import { EventUpdateApplicationDetailDto } from './dto/event.update.application.detail.dto';
 import { Tag } from './entity/tag.entity';
 import { EventLikeStatusDto } from './dto/event.like-status.response.dto';
+import { EventClaimDto } from './dto/event.claim.create.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -603,14 +604,10 @@ export class EventController {
   async approveEventUpdate(
     @Body(new EventValidationPipe())
       eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
-      @Req() req: any,
   ): Promise<EventUpdateApplication | null> {
     try {
-      const { userId } = req.user;
-
       return await this.eventService.approveEventUpdate(
         eventUpdateApprovalRequestDto,
-        userId,
       );
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -660,6 +657,37 @@ export class EventController {
     try {
       return await this.eventService.toggleEventLike({ eventId, userId });
     } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Post('/claim')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '이벤트 신고',
+    description: '이벤트 신고',
+  })
+  @ApiBody({ type: EventClaimDto })
+  @ApiCreatedResponse({
+    description: '이벤트 신고 Id',
+  })
+  @ApiBadRequestResponse({
+    description: 'request가 잘못되었을 때 반환',
+  })
+  @ApiNotFoundResponse({
+    description: '유저 또는 이벤트가 존재하지 않은 경우',
+  })
+  async createEvnetClaim(
+    @Body(new EventValidationPipe()) eventClaimDto: EventClaimDto,
+  ): Promise<String | null> {
+    try {
+      return await this.eventService.createEventClaim(eventClaimDto);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
       console.error(error);
       throw new InternalServerErrorException(error);
     }
