@@ -29,9 +29,14 @@ async function bootstrap() {
   app.enableCors({
     origin: ['http://localhost:3000'],
     credentials: true,
+<<<<<<< HEAD
     methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
   });
 
+=======
+    methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT'],
+  });
+>>>>>>> 719e748 (merge pull request (#209))
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document, swaggerOptions);
