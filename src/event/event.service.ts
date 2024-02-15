@@ -32,13 +32,9 @@ export class EventService {
 
     if (tags) {
       const tagIdList = tags.split(',');
-      serchTags = await this.eventRepository.findEventTagByTagId({
-        tags: tagIdList,
-      });
+      serchTags = await this.eventRepository.findEventTagByTagId(tagIdList);
 
-      serchTags.forEach((el) => {
-        eventIdList.push(el.eventId);
-      });
+      eventIdList.push(serchTags);
     }
 
     if (keyword) {
@@ -251,9 +247,7 @@ export class EventService {
 
     if (tags) {
       const tagIdList = tags.split(',');
-      serchTags = await this.eventRepository.findEventTagByTagId({
-        tags: tagIdList,
-      });
+      serchTags = await this.eventRepository.findEventTagByTagId(tagIdList);
 
       serchTags.forEach((el) => {
         eventIdList.push(el.eventId);

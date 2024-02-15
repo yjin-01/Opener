@@ -446,17 +446,41 @@ export class EventRepository {
   }
 
   // 태그Id로 event 조회
-  async findEventTagByTagId({ tags }) {
+  async findEventTagByTagId(tagIdList) {
     try {
-      const tagList = await this.entityManager
-        .getRepository(EventTag)
-        .createQueryBuilder('et')
-        .select(['et.eventId AS eventId'])
-        .where('et.tagId IN (:...tags)', { tags })
-        .groupBy('et.eventId')
-        .getRawMany();
+      const promiseList: any[] = [];
 
-      return tagList;
+      tagIdList.forEach((el) => {
+        const query = this.entityManager
+          .getRepository(Event)
+          .createQueryBuilder('e')
+          .leftJoinAndSelect('e.eventTags', 'et')
+          .select(['e.id AS eventId'])
+          .where('1=1');
+
+        query.andWhere('et.tagId = :el', { el });
+        promiseList.push(query.getRawMany());
+      });
+
+      const data = await Promise.all([...promiseList]);
+
+      const flattenData = data.flat();
+      const eventIdCounts = {};
+      const eventIdList: string[] = [];
+
+      flattenData.forEach((item) => {
+        const { eventId } = item;
+        eventIdCounts[eventId] = (eventIdCounts[eventId] || 0) + 1;
+      });
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const eventId in eventIdCounts) {
+        if (eventIdCounts[eventId] === tagIdList.length) {
+          eventIdList.push(eventId);
+        }
+      }
+
+      return eventIdList;
     } catch (error) {
       console.error(error);
       throw error;
