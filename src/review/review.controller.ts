@@ -333,11 +333,17 @@ export class ReviewController {
     name: 'eventId',
     required: true,
     description: '리뷰가 달린 행사 아이디',
+    schema: {
+      default: '0396d2c0-457d-49',
+    },
   })
   @ApiQuery({
     name: 'cursorId',
     required: true,
     description: '현재 페이지 번호',
+    schema: {
+      default: 500,
+    },
   })
   @ApiQuery({
     name: 'userId',
@@ -348,6 +354,9 @@ export class ReviewController {
     name: 'size',
     required: true,
     description: '한 페이지당 리뷰 갯수',
+    schema: {
+      default: 10,
+    },
   })
   @ApiBadRequestResponse({
     description:
@@ -373,6 +382,7 @@ export class ReviewController {
     }
   }
 
+  @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '유저 리뷰 리스트 조회',
     description: '유저가 작성한 리뷰 목록을 반환합니다',
@@ -381,16 +391,25 @@ export class ReviewController {
     name: 'userId',
     required: true,
     description: '유저 아이디',
+    schema: {
+      default: '4a256531-6f40-41de-aba2-d37d7507e5d7',
+    },
   })
   @ApiQuery({
     name: 'cursorId',
     required: true,
     description: '현재 페이지 번호',
+    schema: {
+      default: 500,
+    },
   })
   @ApiQuery({
     name: 'size',
     required: true,
     description: '한 페이지당 리뷰 갯수',
+    schema: {
+      default: 5,
+    },
   })
   @ApiBadRequestResponse({
     description:

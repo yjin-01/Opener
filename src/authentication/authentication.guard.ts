@@ -10,6 +10,11 @@ import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
+type Cookie = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
   constructor(
@@ -31,17 +36,28 @@ export class AuthenticationGuard implements CanActivate {
 
       const request = context.switchToHttp().getRequest();
       const token = this.extractTokenFromHeader(request);
-      console.log(request.headers);
-      if (!token) {
-        throw new UnauthorizedException();
+      const cookie = this.extractTokenFromCookie(request) as Cookie;
+      let payload;
+
+      if (token) {
+        payload = await this.jwtService.verifyAsync(token, {
+          secret: this.configService.get('ACCESS_SECRET'),
+        });
+
+        request.user = payload;
+        return true;
       }
 
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get('ACCESS_SECRET'),
-      });
+      if (cookie.accessToken) {
+        payload = await this.jwtService.verifyAsync(cookie.accessToken, {
+          secret: this.configService.get('ACCESS_SECRET'),
+        });
 
-      request.user = payload;
-      return true;
+        request.user = payload;
+        return true;
+      }
+
+      throw new UnauthorizedException();
     } catch (err) {
       console.error(err);
       throw new UnauthorizedException();
@@ -51,5 +67,15 @@ export class AuthenticationGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private extractTokenFromCookie(request: Request): Cookie | {} {
+    return (
+      request.headers.cookie?.split(';').reduce((acc, str) => {
+        const [key, value] = str.replace(' ', '').split('=');
+        acc[key] = value;
+        return acc;
+      }, {}) || {}
+    );
   }
 }

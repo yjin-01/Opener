@@ -270,12 +270,14 @@ export class UserController {
 
       res.appendHeader(
         'Set-Cookie',
-        `accessToken=${token!.accessToken}; SameSite=none; Secure; HttpOnly`,
+        `accessToken=${token!.accessToken}; SameSite=Strict; Secure; HttpOnly`,
       );
+
       res.appendHeader(
         'Set-Cookie',
-        `refreshToken=${token!.refreshToken}; SameSite=none; Secure; HttpOnly`,
+        `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
       );
+
       res.json(plainToInstance(UserDto, user));
     } catch (error) {
       if (error instanceof InvalidException) {
