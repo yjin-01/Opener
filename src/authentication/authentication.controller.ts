@@ -79,11 +79,11 @@ export class AuthenticationController {
 
       res.appendHeader(
         'Set-Cookie',
-        `accessToken=${token!.accessToken}; SameSite=Strict; Secure; HttpOnly`,
+        `accessToken=${token!.accessToken}; SameSite=none; Secure; HttpOnly`,
       );
       res.appendHeader(
         'Set-Cookie',
-        `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
+        `refreshToken=${token!.refreshToken}; SameSite=none; Secure; HttpOnly`,
       );
       res.json(plainToClass(UserDto, user));
     } catch (err) {
