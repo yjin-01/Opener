@@ -79,7 +79,9 @@ export class UserController {
     name: 'userId',
     description: '유저 아이디',
     type: 'uuid',
-    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+    schema: {
+      default: 'b4a2354c-ff70-49c5-be9b-02bdd83e4df9',
+    },
   })
   @ApiOkResponse({
     description: '아티스트 팔로우가 조회되었을 때 반환합니다',
