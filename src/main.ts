@@ -26,7 +26,11 @@ async function bootstrap() {
     )
     .addTag('p1z7')
     .build();
-
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT'],
+  });
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document, swaggerOptions);

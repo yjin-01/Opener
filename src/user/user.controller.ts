@@ -264,11 +264,11 @@ export class UserController {
 
       res.appendHeader(
         'Set-Cookie',
-        `accessToken=${token!.accessToken}; Secure; HttpOnly`,
+        `accessToken=${token!.accessToken}; SameSite=Strict; Secure; HttpOnly`,
       );
       res.appendHeader(
         'Set-Cookie',
-        `refreshToken=${token!.refreshToken}; Secure; HttpOnly`,
+        `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
       );
       res.json(plainToInstance(UserDto, user));
     } catch (error) {
