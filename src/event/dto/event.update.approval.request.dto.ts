@@ -1,13 +1,20 @@
 import { IsString, IsBoolean } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class EventUpdateApprovalRequestDto {
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: '수정 신청 id',
     example: '1fab0958-dafc-48',
   })
   @IsString()
     eventUpdateApplicationId: string;
+
+  @ApiProperty({
+    description: '유저 id',
+    example: '1fab0958-dafc-48',
+  })
+  @IsString()
+    userId: string;
 
   @ApiProperty({
     description: '승인, 거절',

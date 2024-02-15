@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { Artist } from 'src/artist/entity/artist.entity';
 import { Group } from 'src/group/entity/group.entity';
 import * as moment from 'moment';
@@ -22,10 +22,15 @@ import { EventUpdateApprovalRequestDto } from './dto/event.update.approval.reque
 import { EventUpdateApproval } from './entity/event.update.approval.entity';
 import { EventUpdateApplicationRequestDto } from './dto/event.update.application.request.dto';
 import { EventUpdateApplication } from './entity/event.update.application.entity';
+import { EventClaimDto } from './dto/event.claim.create.dto';
+import { EventClaim } from './entity/event.claim.entity';
 
 @Injectable()
 export class EventRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(
+    private readonly entityManager: EntityManager,
+    private readonly dataSource: DataSource,
+  ) {}
 
   // 모든 이벤트 조회(커서기반 보류)
   async findAllEvent({
@@ -802,145 +807,180 @@ export class EventRepository {
 
       let data: object;
       let updateData: string;
-      await this.entityManager.transaction(async (transactioManager) => {
-        updateCategory.forEach(async (el: string) => {
-          if (el === 'artist') {
-            data = {
-              groupId: rest.groupId,
-              artists: rest.artists,
-            };
+      await this.entityManager
+        .transaction(async (transactioManager) => {
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < updateCategory.length; i++) {
+            if (updateCategory[i] === 'artist') {
+              data = {
+                groupId: rest.groupId,
+                artists: rest.artists,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'eventType') {
-            data = {
-              eventType: rest.eventType,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'eventType') {
+              data = {
+                eventType: rest.eventType,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'placeName') {
-            data = {
-              placeName: rest.placeName,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'placeName') {
+              data = {
+                placeName: rest.placeName,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'address') {
-            data = {
-              address: rest.address,
-              addressDetail: rest.addressDetail,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'address') {
+              data = {
+                address: rest.address,
+                addressDetail: rest.addressDetail,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'period') {
-            data = {
-              startDate: rest.startDate,
-              endDate: rest.endDate,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'period') {
+              data = {
+                startDate: rest.startDate,
+                endDate: rest.endDate,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'tags') {
-            data = {
-              tags: rest.tags,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'tags') {
+              data = {
+                tags: rest.tags,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'eventImages') {
-            data = {
-              eventImages: rest.eventImages,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'eventImages') {
+              data = {
+                eventImages: rest.eventImages,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'organizer') {
-            data = {
-              organizerSns: rest.organizerSns,
-              snsType: rest.snsType,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'organizer') {
+              data = {
+                organizerSns: rest.organizerSns,
+                snsType: rest.snsType,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'eventUrl') {
-            data = {
-              eventUrl: rest.eventUrl,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'eventUrl') {
+              data = {
+                eventUrl: rest.eventUrl,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
-          } else if (el === 'description') {
-            data = {
-              description: rest.description,
-            };
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            } else if (updateCategory[i] === 'description') {
+              data = {
+                description: rest.description,
+              };
 
-            updateData = JSON.stringify(data);
+              updateData = JSON.stringify(data);
 
-            await transactioManager.getRepository(EventUpdateApplication).save({
-              eventId,
-              userId,
-              updateCategory: el,
-              updateData,
-            });
+              // eslint-disable-next-line no-await-in-loop
+              await transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: updateCategory[i],
+                  updateData,
+                });
+            }
           }
+        })
+        .catch((e) => {
+          console.log(e);
         });
-      });
 
       return 'Application completed';
     } catch (error) {
@@ -952,10 +992,9 @@ export class EventRepository {
   // 행사 수정 승인 및 거절
   async approveEventUpdate(
     eventUpdateApprovalRequestDto: EventUpdateApprovalRequestDto,
-    userId: string,
   ): Promise<EventUpdateApplication | null> {
     try {
-      const { eventUpdateApplicationId, isApproved } = eventUpdateApprovalRequestDto;
+      const { eventUpdateApplicationId, isApproved, userId } = eventUpdateApprovalRequestDto;
 
       const application = await this.entityManager
         .getRepository(EventUpdateApplication)
@@ -1073,9 +1112,8 @@ export class EventRepository {
                   ...approvalResult,
                   isReflected: true,
                 });
-
-              return approvalResult;
             }
+            return approvalResult;
           }
           // 거절인 경우
           const rejectionResult = await transactioManager
@@ -1220,6 +1258,30 @@ export class EventRepository {
       const tagList = await query.getMany();
 
       return tagList;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // ========= 신고
+  async createEventClaim(eventClaimDto: EventClaimDto): Promise<String | null> {
+    try {
+      const event = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventClaimDto.eventId } });
+
+      if (!event) throw new NotFoundException('Event not exist');
+
+      const insertEventClaim = await this.entityManager
+        .getRepository(EventClaim)
+        .createQueryBuilder()
+        .insert()
+        .into(EventClaim)
+        .values([eventClaimDto])
+        .execute();
+
+      return insertEventClaim.identifiers[0].id;
     } catch (error) {
       console.error(error);
       throw error;
