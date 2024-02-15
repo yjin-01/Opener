@@ -227,6 +227,9 @@ export class UserController {
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: UserBadRequest,
   })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
   async checkDuplicatedNickname(
     @Query('search') search: string,
   ): Promise<UserNicknameResponse | null> {
@@ -253,6 +256,9 @@ export class UserController {
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: UserBadRequest,
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
   })
   async signUp(
     @Body(new UserValidationPipe()) userSignupDto: UserSignupDto,
@@ -287,7 +293,6 @@ export class UserController {
     summary: '회원 탈퇴',
     description: '회원 정보가 삭제됩니다',
   })
-  @ApiBody({ type: UserSignupRequest })
   @ApiOkResponse({
     description: '유저가 삭제되었을 때 반환합니다',
   })
@@ -295,6 +300,9 @@ export class UserController {
     description:
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: UserBadRequest,
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
   })
   async signOut(
     @Param('userId') userId: string,
