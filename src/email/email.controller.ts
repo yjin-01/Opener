@@ -10,6 +10,7 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -35,14 +36,16 @@ export class EmailController {
   @ApiOperation({
     description: '유저에게 계정 확인을 위한 메일을 보냅니다',
   })
+  @ApiBody({
+    type: EmailSendRequest,
+  })
   @ApiBadRequestResponse({
     description:
       'request가 잘못되었을 때 반환합니다(body 또는 API 결과가 유효하지 않을 때)',
     type: EmailSendBadRequest,
   })
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'API가 성공했을 경우 반환합니다',
-    type: EmailSendRequest,
   })
   @ApiInternalServerErrorResponse({
     description: 'API를 성공하지 못했을 경우 반환합니다',
