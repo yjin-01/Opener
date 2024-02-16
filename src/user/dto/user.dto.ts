@@ -10,4 +10,10 @@ export class UserDto {
 
   @Expose()
     profileImage: string;
+
+  @Expose()
+    email: string;
+
+  @Expose()
+    signupMethod: string;
 }

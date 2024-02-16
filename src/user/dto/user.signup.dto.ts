@@ -1,5 +1,5 @@
 import { IsOptional, IsEmail } from 'class-validator';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { UserToArtist } from '../entity/user.artist.entity';
 
 export class UserSignupDto {
@@ -13,9 +13,11 @@ export class UserSignupDto {
   @IsEmail()
     email: string;
 
+  @Transform(({ value }) => String(value))
   @IsOptional()
     password: string;
 
+  @Transform(({ value }) => String(value))
   @IsOptional()
     passwordCheck: string;
 

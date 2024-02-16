@@ -1,4 +1,5 @@
 import { IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class LoginDto {
   code: string;
@@ -8,6 +9,7 @@ export class LoginDto {
 
   signinMethod: string;
 
+  @Transform(({ value }) => String(value))
   @IsOptional()
     password: string;
 
