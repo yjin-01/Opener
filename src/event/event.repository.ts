@@ -739,6 +739,118 @@ export class EventRepository {
       let updateData: string;
       await this.entityManager
         .transaction(async (transactioManager) => {
+          await Promise.all(
+            updateCategory.map(async (el) => {
+              if (el === 'artist') {
+                data = {
+                  groupId: rest.groupId,
+                  artists: rest.artists,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'eventType') {
+                data = {
+                  eventType: rest.eventType,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'placeName') {
+                data = {
+                  placeName: rest.placeName,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'address') {
+                data = {
+                  address: rest.address,
+                  addressDetail: rest.addressDetail,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'period') {
+                data = {
+                  startDate: rest.startDate,
+                  endDate: rest.endDate,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'tags') {
+                data = {
+                  tags: rest.tags,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'eventImages') {
+                data = {
+                  eventImages: rest.eventImages,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'organizer') {
+                data = {
+                  organizerSns: rest.organizerSns,
+                  snsType: rest.snsType,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'eventUrl') {
+                data = {
+                  eventUrl: rest.eventUrl,
+                };
+
+                updateData = JSON.stringify(data);
+              } else if (el === 'description') {
+                data = {
+                  description: rest.description,
+                };
+
+                updateData = JSON.stringify(data);
+              }
+
+              return transactioManager
+                .getRepository(EventUpdateApplication)
+                .save({
+                  eventId,
+                  userId,
+                  updateCategory: el,
+                  updateData,
+                });
+            }),
+          );
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
+
+      return 'Application completed';
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 행사 수정 신청 v1
+  async createEventUpdateApplicatiov1(
+    eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
+  ): Promise<String> {
+    try {
+      const {
+        updateCategory, eventId, userId, ...rest
+      } = eventUpdateApplicationRequestDto;
+
+      const originEvent = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventId } });
+
+      if (!originEvent) {
+        throw new NotFoundException('Event Applicaion not exist');
+      }
+
+      let data: object;
+      let updateData: string;
+      await this.entityManager
+        .transaction(async (transactioManager) => {
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < updateCategory.length; i++) {
             if (updateCategory[i] === 'artist') {
