@@ -89,8 +89,7 @@ export class AuthenticationController {
       res.appendHeader(
         'Access-Control-Allow-Methods',
         'GET, POST, OPTIONS, PUT, PATCH, DELETE',
-      ); // 모든 HTTP 메서드 허용
-      res.appendHeader('Access-Control-Allow-Credentials', 'true'); //
+      );
 
       res.json(plainToClass(UserDto, user));
     } catch (err) {
