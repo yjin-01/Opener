@@ -278,6 +278,13 @@ export class UserController {
         `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
       );
 
+      res.appendHeader('Access-Control-Allow-origin', '*'); // 모든 출처(orogin)을 허용
+      res.appendHeader(
+        'Access-Control-Allow-Methods',
+        'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+      ); // 모든 HTTP 메서드 허용
+      res.appendHeader('Access-Control-Allow-Credentials', 'true'); //
+
       res.json(plainToInstance(UserDto, user));
     } catch (error) {
       if (error instanceof InvalidException) {
