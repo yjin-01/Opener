@@ -27,7 +27,7 @@ async function bootstrap() {
     .addTag('p1z7')
     .build();
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'localhost:3000'],
     credentials: true,
     methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
   });
