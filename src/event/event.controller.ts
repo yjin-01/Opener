@@ -104,6 +104,20 @@ export class EventController {
     description: '데이터 수',
     required: false,
   })
+  @ApiQuery({
+    name: 'sort',
+    description: '정렬 기준',
+    examples: {
+      example1: {
+        description: '최신순 정렬',
+        value: '최신순',
+      },
+      example2: {
+        description: '인기순 정렬',
+        value: '인기순',
+      },
+    },
+  })
   @ApiOkResponse({
     description: '유저가 좋아요한 아티스트들의 행사 목록',
     type: EventListByPageRespone,
@@ -114,6 +128,7 @@ export class EventController {
     @Param('userId') userId: string,
       @Query('page') page: string,
       @Query('size') size: string,
+      @Query('sort') sort: string,
   ): Promise<EventListByPageResponseDto> {
     try {
       console.log(userId, page, size);
@@ -121,48 +136,13 @@ export class EventController {
         userId,
         page,
         size,
+        sort,
       );
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
     }
   }
-
-  //  V1
-  // @ApiBearerAuth('accessToken')
-  // @ApiOperation({
-  //   summary: '유저가 좋아요한 아티스트들의 행사 목록 조회',
-  //   description: '(메인페이지) 내 아티스트의 행사 / (전체 보기 페이지)',
-  // })
-  // @ApiParam({
-  //   name: 'userId',
-  //   description: '유저 Id',
-  //   type: String,
-  // })
-  // @ApiQuery({
-  //   name: 'EventListRequest',
-  //   type: [EventListRequest],
-  // })
-  // @ApiCreatedResponse({
-  //   description: '유저가 좋아요한 아티스트들의 행사 목록',
-  //   type: EventListByPageRespone,
-  // })
-  // @UseInterceptors(EventListByPageResponseInterceptor)
-  // @Get(':userId/artist')
-  // async getEventListByUserArtist(
-  //   @Param('userId') userId: string,
-  //   @Query() getEventListDto: EventListQueryDto,
-  // ): Promise<EventListByPageResponseDto> {
-  //   try {
-  //     return await this.evnetService.getEventListByUserArtist(
-  //       userId,
-  //       getEventListDto,
-  //     );
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw new InternalServerErrorException(error);
-  //   }
-  // }
 
   @Public()
   @ApiOperation({
