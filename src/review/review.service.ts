@@ -148,6 +148,9 @@ export class ReviewService {
           return { ...review, isLike };
         })
         .map((review) => {
+          if (!review.isPublic && review.user?.id === cursor.getUserId()) {
+            return plainToInstance(ReviewDto, review);
+          }
           if (review.isPublic) {
             return plainToInstance(ReviewDto, review);
           }
