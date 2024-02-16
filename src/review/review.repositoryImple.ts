@@ -180,7 +180,6 @@ export class ReviewRepositoryImpl implements ReviewRepository {
         .addSelect(['ri.id', 'ri.url'])
         .addSelect(['rl.id', 'rl.userId', 'rl.isLike'])
         .where(`r.eventId = '${reviewParamDto.getEventId()}'`)
-        .andWhere('r.isPublic = true')
         .andWhere(`r.sequence < ${cursor.getCursorId()}`)
         .orderBy('r.sequence', 'DESC')
         .take(cursor.getSize())

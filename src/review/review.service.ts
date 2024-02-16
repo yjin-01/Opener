@@ -18,6 +18,7 @@ import { ReviewUpdateDto } from './dto/review.update.dto';
 import { ReviewImageDto } from './dto/review.image.dto';
 import { Review } from './entity/review.entity';
 import { ReviewClaimDto } from './dto/review.claim.dto';
+import { PrivateReviewDto } from './dto/riview.private.dto';
 
 @Injectable()
 export class ReviewService {
@@ -122,7 +123,7 @@ export class ReviewService {
   async getReviews(
     reviewParamDto: ReviewListRequestParamDto,
     cursor: ReviewListRequestQueryDto,
-  ): Promise<ReviewDto[] | []> {
+  ): Promise<ReviewDto[] | PrivateReviewDto[]> {
     try {
       // TODO 리팩터링
       const reviews = await this.reviewRepository.find(reviewParamDto, cursor);
@@ -146,7 +147,12 @@ export class ReviewService {
           });
           return { ...review, isLike };
         })
-        .map((review) => plainToInstance(ReviewDto, review));
+        .map((review) => {
+          if (review.isPublic) {
+            return plainToInstance(ReviewDto, review);
+          }
+          return plainToInstance(PrivateReviewDto, review);
+        });
     } catch (error) {
       console.error(error);
       throw error;

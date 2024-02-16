@@ -53,6 +53,7 @@ import { ReviewImageRequest } from './swagger/review.image.request';
 import { ReviewImageDto } from './dto/review.image.dto';
 import { ReviewClaimDto } from './dto/review.claim.dto';
 import { ReviewClaimRequest } from './swagger/review.claim.request';
+import { PrivateReviewDto } from './dto/riview.private.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -374,7 +375,7 @@ export class ReviewController {
     @Param(new ReviewValidationPipe())
       reviewParamDto: ReviewListRequestParamDto,
       @Query(new ReviewValidationPipe()) cursor: ReviewListRequestQueryDto,
-  ): Promise<ReviewDto[]> {
+  ): Promise<ReviewDto[] | PrivateReviewDto[]> {
     try {
       return await this.reviewService.getReviews(reviewParamDto, cursor);
     } catch (error) {
