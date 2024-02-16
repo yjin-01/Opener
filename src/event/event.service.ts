@@ -130,16 +130,6 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
-    // 커서 기반 페이지네이션 보류
-    // const hasNextData = eventList.length === Number(getEventListDto.size);
-    // let cursorId: number | null;
-
-    // if (hasNextData) {
-    //   cursorId = eventList[eventList.length - 1].sequence;
-    // } else {
-    //   cursorId = null;
-    // }
-
     const result = {
       eventList,
       totalCount,
@@ -155,18 +145,38 @@ export class EventService {
     userId: string,
     page: string,
     size: string,
+    sort: string,
   ): Promise<EventListByPageResponseDto> {
+    const eventIdList: object[] = [];
+
     // 유저가 북마크한 아티스트 조회
     const userArtistList = await this.artistRepository.findArtistByUserId(userId);
 
+    if (userArtistList.length === 0) {
+      return {
+        eventList: [],
+        totalCount: 0,
+        page: page ? Number(page) : 1,
+        size: size ? Number(size) : 12,
+      };
+    }
     const userArtistIds = userArtistList.map((el) => el.artistId);
 
-    // 이벤트 조회
-    const { totalCount, eventList } = await this.eventRepository.findEventByUserArtist({
+    const targetEvent = await this.eventRepository.findEventTargetByTargetId({
       userArtistIds,
+    });
+
+    targetEvent.forEach((el) => {
+      eventIdList.push(el.eventId);
+    });
+
+    // 이벤트 조회
+    const { totalCount, eventList } = await this.eventRepository.findEventByUserArtist(
+      eventIdList,
       page,
       size,
-    });
+      sort,
+    );
 
     if (eventList.length === 0) {
       return {
@@ -229,130 +239,6 @@ export class EventService {
       totalCount,
       page: page ? Number(page) : 1,
       size: size ? Number(size) : 12,
-    };
-
-    return result;
-  }
-
-  async getEventListByUserArtistv1(
-    userId: string,
-    getEventListDto: EventListQueryDto,
-  ): Promise<EventListByPageResponseDto> {
-    // 유저가 북마크한 아티스트 조회
-    const userArtistList = await this.artistRepository.findArtistByUserId(userId);
-
-    const userArtistIds = userArtistList.map((el) => el.artistId);
-
-    let eventIdList: object[] = [];
-    let serchTags: any[] = [];
-    let searchKeyword: any[] = [];
-
-    const { tags, keyword } = getEventListDto;
-
-    if (tags) {
-      const tagIdList = tags.split(',');
-      serchTags = await this.eventRepository.findEventTagByTagId(tagIdList);
-
-      serchTags.forEach((el) => {
-        eventIdList.push(el.eventId);
-      });
-    }
-
-    if (keyword) {
-      searchKeyword = await this.eventRepository.findEventTargetByKeyword({
-        keyword,
-      });
-
-      searchKeyword.forEach((el) => {
-        eventIdList.push(el.eventId);
-      });
-    }
-
-    // 공통된 eventId만 넣기
-    if (tags && keyword) {
-      eventIdList = serchTags.filter((it) => searchKeyword.includes(it));
-    }
-
-    // 검색 조건이 있지만 해당하는 event가 없는 경우
-    if (((tags && tags.length !== 0) || keyword) && eventIdList.length === 0) {
-      return {
-        eventList: [],
-        totalCount: 0,
-        page: Number(getEventListDto.page),
-        size: Number(getEventListDto.size),
-      };
-    }
-
-    // 이벤트 조회
-    const {
-      totalCount, page, size, eventList,
-    } = await this.eventRepository.findEventByUserArtistv1({
-      getEventListDto,
-      eventIdList,
-      userArtistIds,
-    });
-
-    if (eventList.length === 0) {
-      return {
-        eventList: [],
-        totalCount: 0,
-        page: Number(page),
-        size: Number(size),
-      };
-    }
-
-    const targetEventIds = eventList.map((el) => el.id);
-
-    // 이벤트 이미지 조회
-    const imageList = await this.eventRepository.findEventImageByEventId({
-      targetEventIds,
-    });
-
-    eventList.forEach((event) => {
-      const eventImages: object[] = [];
-      imageList.forEach((image) => {
-        if (event.id === image.eventId) {
-          eventImages.push(image);
-        }
-      });
-      Object.assign(event, { eventImages });
-    });
-
-    // 이벤트에 참여하는 아티스트 조회
-    const artistList = await this.eventRepository.findEventTargetByEventId({
-      targetEventIds,
-    });
-
-    eventList.forEach((event) => {
-      const targetArtists: object[] = [];
-      artistList.forEach((artist) => {
-        if (event.id === artist.eventId) {
-          targetArtists.push(artist);
-        }
-      });
-      Object.assign(event, { targetArtists });
-    });
-
-    // 이벤트에 해당하는 태그(특전) 조회
-    const tagList = await this.eventRepository.findEventTagByEventId({
-      targetEventIds,
-    });
-
-    eventList.forEach((event) => {
-      const eventTags: object[] = [];
-      tagList.forEach((tag) => {
-        if (event.id === tag.eventId) {
-          eventTags.push(tag);
-        }
-      });
-      Object.assign(event, { eventTags });
-    });
-
-    const result = {
-      eventList,
-      totalCount,
-      page: Number(page),
-      size: Number(size),
     };
 
     return result;

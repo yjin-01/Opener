@@ -160,7 +160,7 @@ export class ArtistRepository {
     }
   }
 
-  async findArtistByUserId(userId: string) {
+  async findArtistByUserId(userId: string): Promise<UserToArtist[]> {
     const artistList = await this.entityManager
       .getRepository(UserToArtist)
       .createQueryBuilder('ua')
