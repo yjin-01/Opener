@@ -98,7 +98,7 @@ export class EventRepository {
 
       const totalCount = await query.getCount();
 
-      query.offset(skip).limit(size);
+      query.offset(skip).limit(itemsPerPage);
 
       const eventList = await query.getRawMany();
 
@@ -114,11 +114,12 @@ export class EventRepository {
     }
   }
 
-  async findEventByUserArtist({
-    userArtistIds,
-    page,
-    size,
-  }): Promise<EventListByPageResponseDto> {
+  async findEventByUserArtist(
+    eventIdList: object[],
+    page: string,
+    size: string,
+    sort: string,
+  ): Promise<EventListByPageResponseDto> {
     try {
       const itemsPerPage = Number(size) || 12; // 페이지당 아이템 수
       const currentPage = Number(page) || 1; // 현재 페이지
@@ -129,7 +130,6 @@ export class EventRepository {
         .getRepository(Event)
         .createQueryBuilder('e')
         .leftJoinAndSelect('e.eventLikes', 'eventLikes')
-        .leftJoinAndSelect('e.targetArtists', 'targetArtists')
         .select([
           'e.id AS id',
           'e.sequence AS sequence',
@@ -147,96 +147,9 @@ export class EventRepository {
         ])
         .addSelect(['COUNT(eventLikes.id) AS likeCount'])
         .where('1=1');
-
-      if (userArtistIds.length !== 0) {
-        query.andWhere(
-          '(targetArtists.artistId IN (:...userArtistIds) OR targetArtists.groupId IN (:...userArtistIds))',
-          {
-            userArtistIds,
-          },
-        );
-      }
-
-      query.groupBy('e.id');
-
-      const totalCount = await query.getCount();
-
-      query.orderBy('e.sequence', 'DESC');
-
-      query.offset(skip).limit(size);
-
-      const eventList = await query.getRawMany();
-
-      return { totalCount, eventList };
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
-
-  // 유저의 아티스트 이벤트 조회(커서기반 보류)
-  async findEventByUserArtistv1({
-    getEventListDto,
-    eventIdList,
-    userArtistIds,
-  }): Promise<EventListByPageResponseDto> {
-    try {
-      const {
-        sido, gungu, startDate, endDate, page, size, sort,
-      } = getEventListDto;
-
-      const itemsPerPage = Number(size) || 12; // 페이지당 아이템 수
-      const currentPage = Number(page) || 1; // 현재 페이지
-
-      const skip = (currentPage - 1) * itemsPerPage;
-
-      const query = this.entityManager
-        .getRepository(Event)
-        .createQueryBuilder('e')
-        .leftJoinAndSelect('e.eventLikes', 'eventLikes')
-        .leftJoinAndSelect('e.targetArtists', 'targetArtists')
-        .select([
-          'e.id AS id',
-          'e.sequence AS sequence',
-          'e.placeName AS placeName',
-          'e.description AS description',
-          'e.eventType AS eventType ',
-          'e.startDate AS startDate',
-          'e.endDate AS endDate',
-          'e.eventUrl AS eventUrl',
-          'e.organizerSns AS organizerSns',
-          'e.snsType AS snsType',
-          'e.address AS address',
-          'e.addressDetail AS addressDetail',
-          'e.createdAt AS createdAt',
-        ])
-        .addSelect(['COUNT(eventLikes.id) AS likeCount'])
-        .where('1=1');
-
-      if (userArtistIds.length !== 0) {
-        query.andWhere(
-          '(targetArtists.artistId IN (:...userArtistIds) OR targetArtists.groupId IN (:...userArtistIds))',
-          {
-            userArtistIds,
-          },
-        );
-      }
 
       if (eventIdList.length !== 0) {
         query.andWhere('e.id IN (:...eventIdList)', { eventIdList });
-      }
-
-      if (sido) {
-        query.andWhere('e.address LIKE :sido', { sido: `%${sido}%` });
-      }
-
-      if (gungu) {
-        query.andWhere('e.address LIKE :gungu', { gungu: `%${gungu}%` });
-      }
-
-      if (startDate && endDate) {
-        query.andWhere('e.startDate <= :endDate', { endDate });
-        query.andWhere('e.endDate >= :startDate', { startDate });
       }
 
       // 정렬 필터
@@ -251,16 +164,11 @@ export class EventRepository {
 
       const totalCount = await query.getCount();
 
-      query.offset(skip).limit(size);
+      query.offset(skip).limit(itemsPerPage);
 
       const eventList = await query.getRawMany();
 
-      return {
-        totalCount,
-        page,
-        size,
-        eventList,
-      };
+      return { totalCount, eventList };
     } catch (error) {
       console.error(error);
       throw error;
@@ -382,7 +290,29 @@ export class EventRepository {
     }
   }
 
-  // 이벤트 참여 아티스트 조회
+  // 아티스트가 참여한 이벤트 조회
+  async findEventTargetByTargetId({ userArtistIds }) {
+    try {
+      const result = await this.entityManager
+        .getRepository(EventTarget)
+        .createQueryBuilder('et')
+        .select(['et.eventId AS eventId'])
+        .where(
+          '(et.artistId IN (:...userArtistIds) OR et.groupId IN (:...userArtistIds))',
+          {
+            userArtistIds,
+          },
+        )
+        .getRawMany();
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 이벤트에 참여한 아티스트 조회 (eventId)
   async findEventTargetByEventId({ targetEventIds }) {
     try {
       const artistList = await this.entityManager
