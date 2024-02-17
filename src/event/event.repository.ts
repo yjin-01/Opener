@@ -226,7 +226,7 @@ export class EventRepository {
   }
 
   // 새로 등록된 이벤트 조회
-  async findNewEventList(): Promise<Event[]> {
+  async findNewEventList(eventIdList: object[] = []): Promise<Event[]> {
     try {
       const query = this.entityManager
         .getRepository(Event)
@@ -247,6 +247,10 @@ export class EventRepository {
           'e.createdAt AS createdAt',
         ])
         .where('1=1');
+
+      if (eventIdList.length !== 0) {
+        query.andWhere('e.id IN (:...eventIdList)', { eventIdList });
+      }
 
       // 현재 날짜 - 7일 기준으로 검색
       const day = moment().subtract(7, 'days').format('YYYY-MM-DD'); // 현재 날짜 및 시간
