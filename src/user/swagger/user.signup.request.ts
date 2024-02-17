@@ -5,10 +5,10 @@ export class UserSignupRequest {
     userName: string;
 
   // TODO enum으로 리팩터링
-  @ApiPropertyOptional({ description: '회원 가입 종류', default: 'google' })
+  @ApiProperty({ description: '회원 가입 종류', default: 'google' })
     signupMethod: string;
 
-  @ApiProperty({ description: '이메일', default: 'test@test.com' })
+  @ApiPropertyOptional({ description: '이메일', default: 'test@test.com' })
     email: string;
 
   @ApiPropertyOptional({ description: '패스워드', default: '패스워드8자이상' })

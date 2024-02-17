@@ -66,13 +66,11 @@ export class ReviewController {
   @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'reviewId',
-    type: 'uuid',
-    description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
+    description: '06258a5c-3109-44fe-bb57-e863583cfd34',
   })
   @ApiParam({
     name: 'userId',
-    type: 'uuid',
-    description: 'e6460f22-e325-470b-8720-c36ce7794622',
+    description: 'cce311df-1c7e-49dd-8585-3a8217555eb1',
   })
   @ApiOperation({
     summary: '리뷰 조회',
@@ -111,7 +109,6 @@ export class ReviewController {
   @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'reviewId',
-    type: 'uuid',
     description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
   })
   @ApiOperation({
@@ -155,7 +152,6 @@ export class ReviewController {
   @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'reviewId',
-    type: 'uuid',
     description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
   })
   @ApiOperation({
@@ -196,7 +192,6 @@ export class ReviewController {
   @ApiBearerAuth('accessToken')
   @ApiParam({
     name: 'reviewId',
-    type: 'uuid',
     description: '107e606f-0b0b-4652-8cb3-c091fb80eff5',
   })
   @ApiOperation({
@@ -349,6 +344,7 @@ export class ReviewController {
   @ApiQuery({
     name: 'userId',
     required: false,
+    example: 'cce311df-1c7e-49dd-8585-3a8217555eb1',
     description: '로그인 했을 때 유저의 아이디',
   })
   @ApiQuery({

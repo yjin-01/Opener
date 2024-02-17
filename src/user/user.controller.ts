@@ -47,7 +47,6 @@ import { UserProfileUpdateRequest } from './swagger/user.profile.update.request'
 import { UserPasswordUpdateRequest } from './swagger/user.password.update.request';
 import { UserUpdatePasswordDto } from './dto/user.update.password';
 import { FollowDto } from './dto/follow.dto';
-import { FollowRequest } from './swagger/follow.request';
 import { FollowArtist } from './dto/follow.artist.dto';
 import { FollowArtistResponse } from './swagger/follow.artist.response';
 import { UserDto } from './dto/user.dto';
@@ -124,11 +123,14 @@ export class UserController {
   @ApiParam({
     name: 'userId',
     description: '유저 아이디',
-    type: 'uuid',
-    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+    example: 'a391ffcf-d364-471d-bfb3-fb6f7b173cf3',
   })
   @ApiBody({
-    type: FollowRequest,
+    schema: {
+      default: {
+        artistIds: ['a391ffcf-d364-471d-bfb3-fb6f7b173cf3'],
+      },
+    },
   })
   @ApiOkResponse({
     description: '아티스트 팔로우가 취소되었을 때 반환합니다',
@@ -171,10 +173,19 @@ export class UserController {
     name: 'userId',
     description: '유저 아이디',
     type: 'uuid',
-    example: 'f14ab7e7-ee5c-4707-b68e-ddb6cf8b0f00',
+    schema: {
+      default: 'a391ffcf-d364-471d-bfb3-fb6f7b173cf3',
+    },
   })
   @ApiBody({
-    type: FollowRequest,
+    schema: {
+      default: {
+        artistIds: [
+          'b1fcfda6-eb30-4479-b431-c90b151c6b87',
+          'cb307bdc-a403-4b5e-981e-ad589f9d7b44',
+        ],
+      },
+    },
   })
   @ApiCreatedResponse({
     description: '아티스트가 추가되었을 때 반환합니다',
@@ -236,7 +247,6 @@ export class UserController {
     try {
       return await this.userService.isDuplicatedNickname(search);
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException(error);
     }
   }
@@ -298,9 +308,15 @@ export class UserController {
   }
 
   @Delete('/:userId')
+  @ApiBearerAuth('accessToken')
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
+  })
   @ApiOperation({
     summary: '회원 탈퇴',
-    description: '회원 정보가 삭제됩니다',
+    description:
+      '회원 정보가 삭제됩니다(넘겨주는 토큰과 회원 아이디가 일치해야합니다)',
   })
   @ApiOkResponse({
     description: '유저가 삭제되었을 때 반환합니다',
@@ -335,6 +351,10 @@ export class UserController {
   @ApiOperation({
     summary: 'profile 수정',
     description: '유저 profile을 수정합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
   })
   @ApiBody({ type: UserProfileUpdateRequest })
   @ApiOkResponse({
@@ -376,6 +396,10 @@ export class UserController {
   @ApiOperation({
     summary: '패스워드 수정',
     description: '유저 패스워드를 수정합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
   })
   @ApiBody({ type: UserPasswordUpdateRequest })
   @ApiOkResponse({
