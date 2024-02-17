@@ -244,6 +244,82 @@ export class EventService {
     return result;
   }
 
+  async getNewEventListByUserArtist(userId: string): Promise<Event[]> {
+    const eventIdList: object[] = [];
+
+    // 유저가 북마크한 아티스트 조회
+    const userArtistList = await this.artistRepository.findArtistByUserId(userId);
+
+    if (userArtistList.length === 0) {
+      return [];
+    }
+    const userArtistIds = userArtistList.map((el) => el.artistId);
+
+    const targetEvent = await this.eventRepository.findEventTargetByTargetId({
+      userArtistIds,
+    });
+
+    targetEvent.forEach((el) => {
+      eventIdList.push(el.eventId);
+    });
+
+    // 이벤트 조회
+    const eventList = await this.eventRepository.findNewEventList(eventIdList);
+
+    if (eventList.length === 0) {
+      return [];
+    }
+
+    const targetEventIds = eventList.map((el) => el.id);
+
+    // 이벤트 이미지 조회
+    const imageList = await this.eventRepository.findEventImageByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const eventImages: object[] = [];
+      imageList.forEach((image) => {
+        if (event.id === image.eventId) {
+          eventImages.push(image);
+        }
+      });
+      Object.assign(event, { eventImages });
+    });
+
+    // 이벤트에 참여하는 아티스트 조회
+    const artistList = await this.eventRepository.findEventTargetByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const targetArtists: object[] = [];
+      artistList.forEach((artist) => {
+        if (event.id === artist.eventId) {
+          targetArtists.push(artist);
+        }
+      });
+      Object.assign(event, { targetArtists });
+    });
+
+    // 이벤트에 해당하는 태그(특전) 조회
+    const tagList = await this.eventRepository.findEventTagByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const eventTags: object[] = [];
+      tagList.forEach((tag) => {
+        if (event.id === tag.eventId) {
+          eventTags.push(tag);
+        }
+      });
+      Object.assign(event, { eventTags });
+    });
+
+    return eventList;
+  }
+
   // 인기 top10
   async getEventListByPopularity(): Promise<any> {
     // 이벤트 조회
@@ -448,82 +524,6 @@ export class EventService {
 
     return eventList;
   }
-
-  // V1
-  // async getEventByUserLike(
-  //   userId: string,
-  //   requirement: EventUserLikeListQueryDto,
-  // ): Promise<EventListByCursorRespone> {
-  //   const eventList = await this.eventRepository.findEventLikeByUserId(
-  //     userId,
-  //     requirement,
-  //   );
-
-  //   console.log('requirement', requirement);
-
-  //   if (eventList.length === 0) {
-  //     return { cursorId: null, size: requirement.size, eventList: [] };
-  //   }
-
-  //   const targetEventIds = eventList.map((el) => el.id);
-
-  //   // 이벤트 이미지 조회
-  //   const imageList = await this.eventRepository.findEventImageByEventId({
-  //     targetEventIds,
-  //   });
-
-  //   eventList.forEach((event) => {
-  //     const eventImages: object[] = [];
-  //     imageList.forEach((image) => {
-  //       if (event.id === image.eventId) {
-  //         eventImages.push(image);
-  //       }
-  //     });
-  //     Object.assign(event, { eventImages });
-  //   });
-
-  //   // 이벤트에 참여하는 아티스트 조회
-  //   const artistList = await this.eventRepository.findEventTargetByEventId({
-  //     targetEventIds,
-  //   });
-
-  //   eventList.forEach((event) => {
-  //     const targetArtists: object[] = [];
-  //     artistList.forEach((artist) => {
-  //       if (event.id === artist.eventId) {
-  //         targetArtists.push(artist);
-  //       }
-  //     });
-  //     Object.assign(event, { targetArtists });
-  //   });
-
-  //   // 이벤트에 해당하는 태그(특전) 조회
-  //   const tagList = await this.eventRepository.findEventTagByEventId({
-  //     targetEventIds,
-  //   });
-
-  //   eventList.forEach((event) => {
-  //     const eventTags: object[] = [];
-  //     tagList.forEach((tag) => {
-  //       if (event.id === tag.eventId) {
-  //         eventTags.push(tag);
-  //       }
-  //     });
-  //     Object.assign(event, { eventTags });
-  //   });
-
-  //   // 페이지네이션
-  //   const hasNextData = eventList.length === Number(requirement.size);
-  //   let cursorId: BigInt | null;
-
-  //   if (hasNextData) {
-  //     cursorId = eventList[eventList.length - 1].sequence;
-  //   } else {
-  //     cursorId = null;
-  //   }
-
-  //   return { cursorId, size: requirement.size, eventList };
-  // }
 
   async createEvent(
     eventInfo: EventCreateRequest,
