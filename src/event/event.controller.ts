@@ -144,6 +144,33 @@ export class EventController {
     }
   }
 
+  // v2
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '(메인페이지) 내 아티스트의 일주일 내 등록된 행사',
+    description: '(메인페이지) 내 아티스트의 일주일 내 등록된 행사',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 Id',
+  })
+  @ApiOkResponse({
+    description: '유저가 좋아요한 아티스트들의 새 행사',
+    type: [Event],
+  })
+  @UseInterceptors(EventResponseInterceptor)
+  @Get('/new/:userId/artist')
+  async getNewEventListByUserArtist(
+    @Param('userId') userId: string,
+  ): Promise<Event[]> {
+    try {
+      return await this.eventService.getNewEventListByUserArtist(userId);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   @Public()
   @ApiOperation({
     summary: '인기 TOP 10',
