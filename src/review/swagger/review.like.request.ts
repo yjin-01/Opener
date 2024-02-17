@@ -2,15 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ReviewLikeRequest {
   @ApiProperty({
-    default: '4b1a0f8d-658e-4342-a3b7-01e81d79fcf8',
+    default: 'e6968dfc-ad25-43e5-8989-82b9db1afb09',
   })
     reviewId: string;
 
   @ApiProperty({
-    default: '6fc13c28-26f5-4ec0-ad41-b8548aeaa9c8',
+    default: 'cce311df-1c7e-49dd-8585-3a8217555eb1',
   })
     userId: string;
 
-  @ApiProperty({ default: 'true or false' })
+  @ApiProperty({ default: false })
     isLike: boolean;
 }
