@@ -25,6 +25,134 @@ export class EventService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  // 모든 행사 조회(isLike포함)
+  async getEventListV2(
+    getEventListDto: EventListQueryDto,
+  ): Promise<EventListByPageResponseDto> {
+    let eventIdList: object[] = [];
+    let serchTags: any[] = [];
+    let searchKeyword: any[] = [];
+
+    const { tags, keyword, userId } = getEventListDto;
+
+    if (tags) {
+      const tagIdList = tags.split(',');
+      serchTags = await this.eventRepository.findEventTagByTagId(tagIdList);
+
+      eventIdList.push(serchTags);
+    }
+
+    if (keyword) {
+      searchKeyword = await this.eventRepository.findEventTargetByKeyword({
+        keyword,
+      });
+
+      searchKeyword.forEach((el) => {
+        eventIdList.push(el.eventId);
+      });
+    }
+
+    // 공통된 eventId만 넣기
+    if (tags && keyword) {
+      eventIdList = serchTags.filter((it) => searchKeyword.includes(it));
+    }
+
+    // 검색 조건이 있지만 해당하는 event가 없는 경우
+    if (((tags && tags.length !== 0) || keyword) && eventIdList.length === 0) {
+      return {
+        eventList: [],
+        totalCount: 0,
+        page: getEventListDto.page ? Number(getEventListDto.page) : 1,
+        size: getEventListDto.size ? Number(getEventListDto.size) : 12,
+      };
+    }
+
+    // 이벤트 조회
+    const {
+      totalCount, page, size, eventList,
+    } = await this.eventRepository.findAllEvent({
+      getEventListDto,
+      eventIdList,
+    });
+
+    if (eventList.length === 0) {
+      return {
+        eventList: [],
+        totalCount: 0,
+        page: Number(page),
+        size: Number(size),
+      };
+    }
+
+    const targetEventIds = eventList.map((el) => el.id);
+
+    // 이벤트 이미지 조회
+    const imageList = await this.eventRepository.findEventImageByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const eventImages: object[] = [];
+      imageList.forEach((image) => {
+        if (event.id === image.eventId) {
+          eventImages.push(image);
+        }
+      });
+      Object.assign(event, { eventImages });
+    });
+
+    // 이벤트에 참여하는 아티스트 조회
+    const artistList = await this.eventRepository.findEventTargetByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const targetArtists: object[] = [];
+      artistList.forEach((artist) => {
+        if (event.id === artist.eventId) {
+          targetArtists.push(artist);
+        }
+      });
+      Object.assign(event, { targetArtists });
+    });
+
+    // 이벤트에 해당하는 태그(특전) 조회
+    const tagList = await this.eventRepository.findEventTagByEventId({
+      targetEventIds,
+    });
+
+    eventList.forEach((event) => {
+      const eventTags: object[] = [];
+      tagList.forEach((tag) => {
+        if (event.id === tag.eventId) {
+          eventTags.push(tag);
+        }
+      });
+      Object.assign(event, { eventTags });
+    });
+
+    if (userId) {
+      const LikeList = await this.eventRepository.findEventLikeByUserId(userId);
+
+      eventList.forEach((event) => {
+        Object.assign(event, { isLike: false });
+        LikeList.forEach((like) => {
+          if (event.id === like.id) {
+            Object.assign(event, { isLike: true });
+          }
+        });
+      });
+    }
+    const result = {
+      eventList,
+      totalCount,
+      page: Number(page),
+      size: Number(size),
+    };
+
+    return result;
+  }
+
   async getEventList(
     getEventListDto: EventListQueryDto,
   ): Promise<EventListByPageResponseDto> {

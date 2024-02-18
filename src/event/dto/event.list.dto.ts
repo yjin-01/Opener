@@ -8,6 +8,12 @@ export class EventListQueryDto {
   @Expose()
   @Type(() => String)
   @IsString()
+  @IsOptional()
+    userId?: string;
+
+  @Expose()
+  @Type(() => String)
+  @IsString()
     keyword: string;
 
   @Expose()
