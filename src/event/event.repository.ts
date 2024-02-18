@@ -216,8 +216,6 @@ export class EventRepository {
 
       const eventList = await query.getRawMany();
 
-      console.log(eventList);
-
       return eventList;
     } catch (error) {
       console.error(error);
@@ -294,7 +292,7 @@ export class EventRepository {
     }
   }
 
-  // 아티스트가 참여한 이벤트 조회
+  // 아티스트가 참여한 이벤트 조회 (targetId)
   async findEventTargetByTargetId({ userArtistIds }) {
     try {
       const result = await this.entityManager
@@ -341,7 +339,7 @@ export class EventRepository {
     }
   }
 
-  // 검색어로 이벤트 참여 아티스트 조회
+  // 검색어로 이벤트 참여 아티스트 조회 (keyword)
   async findEventTargetByKeyword({ keyword }) {
     try {
       const artistList = await this.entityManager
@@ -387,21 +385,19 @@ export class EventRepository {
   // 태그Id로 event 조회
   async findEventTagByTagId(tagIdList) {
     try {
-      const promiseList: any[] = [];
+      const data = await Promise.all(
+        tagIdList.map((el: string) => {
+          const query = this.entityManager
+            .getRepository(Event)
+            .createQueryBuilder('e')
+            .leftJoinAndSelect('e.eventTags', 'et')
+            .select(['e.id AS eventId'])
+            .where('1=1');
 
-      tagIdList.forEach((el) => {
-        const query = this.entityManager
-          .getRepository(Event)
-          .createQueryBuilder('e')
-          .leftJoinAndSelect('e.eventTags', 'et')
-          .select(['e.id AS eventId'])
-          .where('1=1');
-
-        query.andWhere('et.tagId = :el', { el });
-        promiseList.push(query.getRawMany());
-      });
-
-      const data = await Promise.all([...promiseList]);
+          query.andWhere('et.tagId = :el', { el });
+          return query.getRawMany();
+        }),
+      );
 
       const flattenData = data.flat();
       const eventIdCounts = {};
@@ -437,17 +433,11 @@ export class EventRepository {
         .orderBy('ei.sequence', 'ASC')
         .getOne();
 
-      const likeCount = await this.entityManager
-        .getRepository(EventLike)
-        .createQueryBuilder('el')
-        .where('el.eventId = :eventId', { eventId })
-        .getCount();
+      const likeCount = await this.findCountLike(eventId);
 
       if (event) {
         event.likeCount = likeCount;
       }
-
-      console.log(event);
 
       return event;
     } catch (error) {
@@ -485,11 +475,6 @@ export class EventRepository {
         .addSelect(['COUNT(el.id) AS likeCount'])
         .where('el.userId = :userId', { userId });
 
-      // if (targetDate) {
-      //   query.andWhere('e.startDate <= :targetDate', { targetDate });
-      //   query.andWhere('e.endDate >= :targetDate', { targetDate });
-      // }
-
       // 현재 날짜 기준으로 검색
       const today = moment().format('YYYY-MM-DD'); // 현재 날짜 및 시간
 
@@ -504,14 +489,8 @@ export class EventRepository {
         query.andWhere('e.endDate > :today', { today });
       }
 
-      // if (cursorId) {
-      //   query.andWhere(`e.sequence < ${cursorId}`);
-      // }
-
       query.groupBy('e.id');
       query.orderBy('e.sequence', 'DESC');
-
-      // query.limit(size);
 
       const eventList = await query.getRawMany();
 
@@ -530,8 +509,8 @@ export class EventRepository {
         groupId, artists, tags, eventImages, ...rest
       } = eventInfo;
 
-      const result = await this.entityManager.transaction(
-        async (transactioManager) => {
+      const result = await this.entityManager
+        .transaction(async (transactioManager) => {
           // 1. 행사 저장
           const insertEvent = await transactioManager
             .getRepository(Event)
@@ -607,8 +586,11 @@ export class EventRepository {
           }
 
           return id;
-        },
-      );
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
 
       return { eventId: result };
     } catch (error) {
@@ -632,8 +614,8 @@ export class EventRepository {
 
       if (!originEvent) throw new NotFoundException('Event not exist');
 
-      const result = await this.entityManager.transaction(
-        async (transactioManager) => {
+      const result = await this.entityManager
+        .transaction(async (transactioManager) => {
           // 1. 행사 수정
           await transactioManager.getRepository(Event).save({
             ...originEvent,
@@ -712,8 +694,11 @@ export class EventRepository {
           const event = await this.findOneEventByEventId(eventId);
 
           return event;
-        },
-      );
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
 
       return result;
     } catch (error) {
@@ -863,8 +848,8 @@ export class EventRepository {
         throw new ConflictException('Already approved or rejected');
       }
 
-      const result = await this.entityManager.transaction(
-        async (transactioManager) => {
+      const result = await this.entityManager
+        .transaction(async (transactioManager) => {
           await transactioManager.getRepository(EventUpdateApproval).save({
             eventUpdateApplicationId,
             userId,
@@ -976,8 +961,11 @@ export class EventRepository {
           }
 
           return rejectionResult;
-        },
-      );
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
 
       return result;
     } catch (error) {
