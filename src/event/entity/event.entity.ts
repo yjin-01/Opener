@@ -200,4 +200,10 @@ export class Event {
   })
   @Type(() => Number)
     likeCount: number;
+
+  // @ApiPropertyOptional({
+  //   description: '좋아요 여부',
+  // })
+  // @Type(() => Boolean)
+  // isLike: boolean;
 }
