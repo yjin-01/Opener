@@ -8,6 +8,7 @@ import {
   BadRequestException,
   NotFoundException,
   Res,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,10 +32,10 @@ import { AuthenticationLoginBadrequest } from './swagger/authentication.login.ba
 import { LoginDto } from './dto/login.dto';
 import { AuthenticationValidationPipe } from './authentication.validtion.pipe';
 import { AuthenticationGenerateTokenRequest } from './swagger/authentication.token.request';
-import { TokenDto } from './dto/token.dto';
 import { InvalidEmailException } from './api/exception/InvalidEmailException';
 import { NotExistException } from './exception/not.exist.exception';
 import { AuthenticationLoginNotFound } from './swagger/authentication.login.notfound';
+import { CustomRequest } from './interface/Request';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -77,19 +78,18 @@ export class AuthenticationController {
       const user = await this.authenticationService.login(loginDto);
       const token = await this.authenticationService.generateTokenPair(user);
 
-      res.appendHeader(
-        'Set-Cookie',
-        `accessToken=${token!.accessToken}; SameSite=Strict; Secure; HttpOnly`,
-      );
-      res.appendHeader(
-        'Set-Cookie',
-        `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
-      );
-
-      res.appendHeader(
-        'Access-Control-Allow-Methods',
-        'GET, POST, OPTIONS, PUT, PATCH, DELETE',
-      );
+      res.cookie('accessToken', token.accessToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
+      res.cookie('refreshToken', token.refreshToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
 
       res.json(plainToClass(UserDto, user));
     } catch (err) {
@@ -108,7 +108,6 @@ export class AuthenticationController {
     }
   }
 
-  @Public()
   @Post('/token')
   @ApiOperation({
     summary: 'API accessToken 발급',
@@ -125,10 +124,28 @@ export class AuthenticationController {
     type: AuthenticationLoginBadrequest,
   })
   async generateToken(
-    @Body(new AuthenticationValidationPipe()) tokenDto: TokenDto,
-  ): Promise<string | null> {
+    @Req() req: CustomRequest,
+      @Res({ passthrough: true }) res: Response,
+  ): Promise<void | null> {
     try {
-      return await this.authenticationService.generateToken(tokenDto);
+      const accessToken = await this.authenticationService.generateToken(
+        req.cookie,
+      );
+
+      res.cookie('accessToken', accessToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
+      res.cookie('refreshToken', req.cookie.refreshToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
+
+      res.json();
     } catch (err) {
       if (err instanceof JsonWebTokenError) {
         throw new UnauthorizedException(err);

@@ -278,22 +278,18 @@ export class UserController {
       const user = await this.userService.createUser(userSignupDto);
       const token = await this.authService.generateTokenPair(user);
 
-      res.appendHeader(
-        'Set-Cookie',
-        `accessToken=${token!.accessToken}; SameSite=Strict; Secure; HttpOnly`,
-      );
-
-      res.appendHeader(
-        'Set-Cookie',
-        `refreshToken=${token!.refreshToken}; SameSite=Strict; Secure; HttpOnly`,
-      );
-
-      res.appendHeader('Access-Control-Allow-origin', '*'); // 모든 출처(orogin)을 허용
-      res.appendHeader(
-        'Access-Control-Allow-Methods',
-        'GET, POST, OPTIONS, PUT, PATCH, DELETE',
-      ); // 모든 HTTP 메서드 허용
-      res.appendHeader('Access-Control-Allow-Credentials', 'true'); //
+      res.cookie('accessToken', token.accessToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
+      res.cookie('refreshToken', token.refreshToken, {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+      });
 
       res.json(plainToInstance(UserDto, user));
     } catch (error) {
