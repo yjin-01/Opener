@@ -13,6 +13,7 @@ import { FollowDto } from './dto/follow.dto';
 import { FollowArtist } from './dto/follow.artist.dto';
 import { User } from './entity/user.entity';
 import { UserDto } from './dto/user.dto';
+import { FollowUpdateDto } from './dto/follow.update.dto';
 
 @Injectable()
 export class UserService {
@@ -66,6 +67,24 @@ export class UserService {
       return result!.map((userArtist) => plainToInstance(FollowArtist, userArtist.artist));
     } catch (error) {
       throw new Error(error);
+    }
+  }
+
+  async changeFollowArtist(
+    userId: string,
+    followDto: FollowUpdateDto,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      await this.userRepositoryImple.changeFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
