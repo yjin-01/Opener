@@ -44,6 +44,16 @@ export class UserService {
     return plainToInstance(UserDto, user);
   }
 
+  async getUserById(userId: string): Promise<UserDto | null> {
+    const user = this.userRepositoryImple.findById(userId);
+
+    if (!user) {
+      throw new NotExistException('not exist user');
+    }
+
+    return plainToInstance(UserDto, user);
+  }
+
   async getMyArtistList(userId: string): Promise<FollowArtist[] | null> {
     try {
       const user = await this.userRepositoryImple.findById(userId);

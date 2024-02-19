@@ -9,11 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-
-type Cookie = {
-  accessToken: string;
-  refreshToken: string;
-};
+import { Cookie } from './interface/Request';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -46,6 +42,7 @@ export class AuthenticationGuard implements CanActivate {
         });
 
         request.user = payload;
+        request.cookie = cookie;
         return true;
       }
 
@@ -55,6 +52,7 @@ export class AuthenticationGuard implements CanActivate {
         });
 
         request.user = payload;
+        request.cookie = cookie;
         return true;
       }
 
