@@ -1,4 +1,5 @@
 import { FollowDto } from '../dto/follow.dto';
+import { FollowUpdateDto } from '../dto/follow.update.dto';
 import { UserToArtist } from '../entity/user.artist.entity';
 import { User } from '../entity/user.entity';
 
@@ -13,4 +14,5 @@ export interface UserRepository {
   createFollow(userId: string, followDto: FollowDto): Promise<string | null>;
   deleteFollow(userId: string, followDto: FollowDto): Promise<number | null>;
   findFollow(userId: string): Promise<UserToArtist[] | null>;
+  changeFollow(userId: string, changeFollowDto: FollowUpdateDto): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 
 type ReviewUser = {
   id: string;
@@ -11,13 +11,30 @@ type ReviewImage = {
   createdAt: Date;
 };
 
-type Event = {
+class Event {
   id: string;
+
   placeName: string;
+
   eventType: string;
+
   startDate: Date;
+
   endDate: Date;
-};
+
+  @Exclude()
+    targetArtists: any;
+}
+
+class ReviewArtist {
+  artistId: string;
+
+  artistName: string;
+
+  groupId: string;
+
+  groupName: string;
+}
 
 @Exclude()
 export class ReviewUserDto {
@@ -46,6 +63,7 @@ export class ReviewUserDto {
     likeCount: number;
 
   @Expose()
+  @Type(() => Event)
     event: Event;
 
   @Expose()
@@ -53,4 +71,7 @@ export class ReviewUserDto {
 
   @Expose()
     reviewImages: ReviewImage[];
+
+  @Expose()
+    reviewArtists: ReviewArtist[];
 }

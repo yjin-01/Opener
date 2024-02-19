@@ -7,10 +7,44 @@ import { UserToArtist } from './entity/user.artist.entity';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { FollowDto } from './dto/follow.dto';
+import { FollowUpdateDto } from './dto/follow.update.dto';
 
 @Injectable()
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
+
+  async changeFollow(
+    userId: string,
+    changeFollowDto: FollowUpdateDto,
+  ): Promise<void> {
+    try {
+      await this.entityManager.transaction(async (transactionManager) => {
+        const [deleteResult, insertResult] = await Promise.all([
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .delete()
+            .from(UserToArtist)
+            .where('user_id = :userId', { userId })
+            .andWhere('artist_id IN(:...ids)', {
+              ids: changeFollowDto.deleteArtistIds,
+            })
+            .execute(),
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .insert()
+            .into(UserToArtist)
+            .values(changeFollowDto.toFollowArtist(userId))
+            .execute(),
+        ]);
+        console.log(deleteResult, insertResult);
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
   async delete(userId: string): Promise<void> {
     try {

@@ -28,6 +28,20 @@ class ReviewImage {
     createdAt: Date;
 }
 
+class ReviewArtist {
+  @ApiProperty()
+    artistId: string;
+
+  @ApiProperty()
+    artistName: string;
+
+  @ApiProperty()
+    groupId: string;
+
+  @ApiProperty()
+    groupName: string;
+}
+
 export class ReviewUserResponse {
   @ApiProperty()
     id: string;
@@ -58,4 +72,7 @@ export class ReviewUserResponse {
 
   @ApiProperty({ type: ReviewImage, isArray: true })
     reviewImages: ReviewImage[];
+
+  @ApiProperty({ type: ReviewArtist, isArray: true })
+    reviewArtists: ReviewArtist[];
 }

@@ -170,7 +170,7 @@ export class ArtistRepository {
     return artistList;
   }
 
-  async createArtistRequest(artistRequest): Promise<number | null> {
+  async createArtistRequest(artistRequest): Promise<string | null> {
     try {
       const { identifiers } = await this.entityManager
         .getRepository(ArtistRequest)

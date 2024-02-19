@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistRepository } from './artist.repository';
 import { ArtistListResponse } from './dto/artist.list.response';
 import { Artist } from './entity/artist.entity';
+import { ArtistRequestCreateResponse } from './dto/artistrequest.create.response';
 
 @Injectable()
 export class ArtistService {
@@ -67,9 +69,12 @@ export class ArtistService {
     }
   }
 
-  async requestArtist(userRequest): Promise<number | null> {
+  async requestArtist(
+    userRequest,
+  ): Promise<ArtistRequestCreateResponse | null> {
     try {
-      return await this.artistRepository.createArtistRequest(userRequest);
+      const id = await this.artistRepository.createArtistRequest(userRequest);
+      return plainToInstance(ArtistRequestCreateResponse, { id });
     } catch (error) {
       console.error(error);
       throw error;

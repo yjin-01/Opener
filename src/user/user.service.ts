@@ -13,6 +13,8 @@ import { FollowDto } from './dto/follow.dto';
 import { FollowArtist } from './dto/follow.artist.dto';
 import { User } from './entity/user.entity';
 import { UserDto } from './dto/user.dto';
+import { FollowUpdateDto } from './dto/follow.update.dto';
+import { FollowArtistResponseDto } from './dto/follow.artist.response.dto';
 
 @Injectable()
 export class UserService {
@@ -69,6 +71,24 @@ export class UserService {
     }
   }
 
+  async changeFollowArtist(
+    userId: string,
+    followDto: FollowUpdateDto,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      await this.userRepositoryImple.changeFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async unfollowArtist(
     userId: string,
     followDto: FollowDto,
@@ -90,7 +110,7 @@ export class UserService {
   async addArtist(
     userId: string,
     followDto: FollowDto,
-  ): Promise<string | null> {
+  ): Promise<FollowArtistResponseDto | null> {
     try {
       const user = await this.userRepositoryImple.findById(userId);
 
@@ -98,7 +118,8 @@ export class UserService {
         throw new NotExistException('not exist user');
       }
 
-      return await this.userRepositoryImple.createFollow(userId, followDto);
+      const id = await this.userRepositoryImple.createFollow(userId, followDto);
+      return plainToInstance(FollowArtistResponseDto, { id });
     } catch (error) {
       console.error(error);
       throw error;

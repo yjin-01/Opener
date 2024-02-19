@@ -31,6 +31,7 @@ import { ArtistCreateResponseInterceptor } from './interceptor/artist.create.res
 import { ArtistRequestCreateRequest } from './dto/artistrequest.create.request';
 import { ArtistRequest } from './swagger/artistrequest.request';
 import { ArtistRequestBadRequest } from './swagger/artistrequest.create.response';
+import { ArtistRequestCreateResponse } from './dto/artistrequest.create.response';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -168,7 +169,7 @@ export class ArtistController {
   })
   async createArtistRequest(
     @Body() artistRequest: ArtistRequestCreateRequest,
-  ): Promise<number | null> {
+  ): Promise<ArtistRequestCreateResponse | null> {
     try {
       return await this.artistService.requestArtist(artistRequest);
     } catch (error) {
