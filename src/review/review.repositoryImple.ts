@@ -198,6 +198,9 @@ export class ReviewRepositoryImpl implements ReviewRepository {
         .leftJoinAndSelect('r.reviewImages', 'ri')
         .leftJoinAndSelect('r.reviewLikes', 'rl')
         .leftJoinAndSelect('r.event', 'e')
+        .leftJoinAndSelect('e.targetArtists', 'eta')
+        .leftJoinAndSelect('eta.artistId', 'ea')
+        .leftJoinAndSelect('eta.groupId', 'eg')
         .select([
           'r.id',
           'r.sequence',
@@ -216,6 +219,9 @@ export class ReviewRepositoryImpl implements ReviewRepository {
           'e.startDate',
           'e.endDate',
         ])
+        .addSelect(['eta.id'])
+        .addSelect(['ea.id', 'ea.artistName'])
+        .addSelect(['eg.id', 'eg.groupName'])
         .where(`r.userId = '${reviewParamDto.getUserId()}'`)
         .andWhere(`r.sequence < ${cursor.getCursorId()}`)
         .orderBy('r.sequence', 'DESC')

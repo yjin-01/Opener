@@ -183,8 +183,16 @@ export class ReviewService {
 
         return { ...review, likeCount };
       });
-
       return reviewsDto
+        .map((review) => {
+          const reviewArtists = review.event.targetArtists.map((target) => ({
+            artistId: target.artistId.id,
+            artistName: target.artistId.artistName,
+            groupId: target.groupId.id,
+            groupName: target.groupId.groupName,
+          }));
+          return { ...review, reviewArtists };
+        })
         .map((review) => {
           let isLike = false;
           review.reviewLikes.forEach((like) => {
