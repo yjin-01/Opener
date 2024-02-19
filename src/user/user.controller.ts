@@ -53,6 +53,7 @@ import { FollowArtistResponse } from './swagger/follow.artist.response';
 import { UserDto } from './dto/user.dto';
 import { FollowUpdateDto } from './dto/follow.update.dto';
 import { FollowArtistUpdateRequest } from './swagger/follow.artist.update.request';
+import { FollowArtistResponseDto } from './dto/follow.artist.response.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -253,7 +254,7 @@ export class UserController {
   async followArtist(
     @Param('userId') userId: string,
       @Body(new UserValidationPipe()) followDto: FollowDto,
-  ): Promise<string | null> {
+  ): Promise<FollowArtistResponseDto | null> {
     try {
       return await this.userService.addArtist(userId, followDto);
     } catch (error) {
