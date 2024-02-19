@@ -131,7 +131,6 @@ export class EventController {
       @Query('sort') sort: string,
   ): Promise<EventListByPageResponseDto> {
     try {
-      console.log(userId, page, size);
       return await this.eventService.getEventListByUserArtist(
         userId,
         page,
@@ -494,7 +493,7 @@ export class EventController {
   @ApiBody({ type: EventUpdateApplicationRequestDto })
   @ApiOkResponse({
     description: '수정 등록된 행사에 대한 정보',
-    type: String,
+    type: Object,
   })
   @ApiNotFoundResponse({
     description: '존재하지 않는 event Id인 경우',
@@ -504,7 +503,7 @@ export class EventController {
   async createEventUpdateApplication(
     @Body(new EventValidationPipe())
       eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
-  ): Promise<String> {
+  ): Promise<Object> {
     try {
       return await this.eventService.createEventUpdateApplication(
         eventUpdateApplicationRequestDto,
