@@ -702,12 +702,12 @@ export class EventService {
 
   async createEventUpdateApplication(
     eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
-  ): Promise<String> {
+  ): Promise<Object> {
     try {
       const result = await this.eventRepository.createEventUpdateApplication(
         eventUpdateApplicationRequestDto,
       );
-      return result;
+      return { result };
     } catch (error) {
       console.error(error);
       throw error;
