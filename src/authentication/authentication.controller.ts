@@ -25,13 +25,14 @@ import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { plainToClass } from 'class-transformer';
+import { UserTokenDto } from 'src/user/dto/user.token.dto';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
 import { AuthenticationLoginBadrequest } from './swagger/authentication.login.badrequest';
 import { LoginDto } from './dto/login.dto';
 import { AuthenticationValidationPipe } from './authentication.validtion.pipe';
-import { AuthenticationGenerateTokenRequest } from './swagger/authentication.token.request';
+import { AuthenticationGenerateTokenResponse } from './swagger/authentication.token.response';
 import { InvalidEmailException } from './api/exception/InvalidEmailException';
 import { NotExistException } from './exception/not.exist.exception';
 import { AuthenticationLoginNotFound } from './swagger/authentication.login.notfound';
@@ -113,10 +114,9 @@ export class AuthenticationController {
     summary: 'API accessToken 발급',
     description: '새로운 API accessToken이 발행됩니다',
   })
-  @ApiBody({ type: AuthenticationGenerateTokenRequest })
   @ApiCreatedResponse({
     description: 'API 토큰이 발급되었을 때 반환합니다',
-    type: AuthenticationLoginResponse,
+    type: AuthenticationGenerateTokenResponse,
   })
   @ApiBadRequestResponse({
     description:
@@ -132,6 +132,8 @@ export class AuthenticationController {
         req.cookie,
       );
 
+      const user = await this.userService.getUserById(req.user.id);
+
       res.cookie('accessToken', accessToken, {
         secure: true,
         sameSite: 'strict',
@@ -145,7 +147,7 @@ export class AuthenticationController {
         path: '/api',
       });
 
-      res.json();
+      res.json(plainToClass(UserTokenDto, user));
     } catch (err) {
       if (err instanceof JsonWebTokenError) {
         throw new UnauthorizedException(err);

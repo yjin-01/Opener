@@ -5,7 +5,11 @@ export type Cookie = {
   refreshToken: string;
 };
 
+type User = {
+  id: string;
+};
+
 export interface CustomRequest extends Request {
-  user: object;
+  user: User;
   cookie: Cookie;
 }
