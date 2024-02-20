@@ -20,7 +20,7 @@ export class GroupRepository {
 
       const skip = (currentPage - 1) * itemsPerPage;
 
-      let query = ' SELECT g.id , g.group_name , g.group_image, "group" as type'
+      let query = ' SELECT g.id , g.group_name AS name, g.group_image AS image, "group" as type'
         + ' FROM `groups` g'
         + ' WHERE 1 = 1';
 
