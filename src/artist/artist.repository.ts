@@ -24,7 +24,17 @@ export class ArtistRepository {
     const skip = (currentPage - 1) * itemsPerPage;
 
     // eslint-disable-next-line max-len
-    let query = 'SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
+    let query = ' SELECT g.id , g.group_name , g.group_image, "group" as type'
+      + ' FROM `groups` g'
+      + ' WHERE 1 = 1';
+
+    if (keyword) {
+      query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
+    }
+
+    query
+      += ' UNION'
+      + ' SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
       + ' FROM artists a'
       + ' LEFT JOIN artist_groups ag on ag.artist_id = a.id'
       + ' LEFT JOIN `groups` g on g.id = ag.group_id'
@@ -33,16 +43,6 @@ export class ArtistRepository {
     if (keyword) {
       // eslint-disable-next-line max-len
       query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
-    }
-
-    query
-      += ' UNION'
-      + ' SELECT g.id , g.group_name , g.group_image, "group" as type'
-      + ' FROM `groups` g'
-      + ' WHERE 1 = 1';
-
-    if (keyword) {
-      query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
     }
 
     let totalCount = await this.entityManager.query(query);
