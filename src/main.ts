@@ -27,6 +27,7 @@ async function bootstrap() {
     .addTag('p1z7')
     .build();
   app.enableCors({
+<<<<<<< HEAD
     // origin: [
     //   'http://localhost:3000',
     //   'localhost:3000',
@@ -34,6 +35,14 @@ async function bootstrap() {
     //   'myopener.kr',
     // ],
     origin: true,
+=======
+    origin: [
+      'http://localhost:3000',
+      'localhost:3000',
+      'https://myopener.kr',
+      'myopener.kr',
+    ],
+>>>>>>> ab210df (fix: origin 추가 (#271) (#272))
     allowedHeaders: ['Authorization', 'Set-Cookie'],
     credentials: true,
     methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
