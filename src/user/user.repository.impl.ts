@@ -19,7 +19,7 @@ export class UserRepositoryImple implements UserRepository {
   ): Promise<void> {
     try {
       await this.entityManager.transaction(async (transactionManager) => {
-        const [deleteResult, insertResult] = await Promise.all([
+        if (changeFollowDto.deleteArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
             .createQueryBuilder()
@@ -29,16 +29,18 @@ export class UserRepositoryImple implements UserRepository {
             .andWhere('artist_id IN(:...ids)', {
               ids: changeFollowDto.deleteArtistIds,
             })
-            .execute(),
+            .execute();
+        }
+
+        if (changeFollowDto.addArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
             .createQueryBuilder()
             .insert()
             .into(UserToArtist)
             .values(changeFollowDto.toFollowArtist(userId))
-            .execute(),
-        ]);
-        console.log(deleteResult, insertResult);
+            .execute();
+        }
       });
     } catch (error) {
       console.error(error);
