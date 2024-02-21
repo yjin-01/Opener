@@ -71,16 +71,14 @@ export class UserRepositoryImple implements UserRepository {
 
   async findFollow(userId: string): Promise<UserToArtist[] | []> {
     try {
-      return (
-        (await this.entityManager
-          .getRepository(UserToArtist)
-          .createQueryBuilder('ua')
-          .select(['ua.id'])
-          .where('ua.userId = :userId', { userId })
-          .leftJoinAndSelect('ua.artist', 'a')
-          .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
-          .getMany()) || []
-      );
+      return await this.entityManager
+        .getRepository(UserToArtist)
+        .createQueryBuilder('ua')
+        .leftJoinAndSelect('ua.artist', 'a')
+        .select(['ua.id'])
+        .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
+        .where('ua.userId = :userId', { userId })
+        .getMany();
     } catch (error) {
       throw Error(error);
     }

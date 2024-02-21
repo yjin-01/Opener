@@ -52,7 +52,10 @@ export class UserToArtist {
   })
     deletedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.userArtists)
+  @ManyToOne(() => User, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
   @JoinColumn({ name: 'user_id' })
     user: User;
 
