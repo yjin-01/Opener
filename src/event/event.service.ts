@@ -26,7 +26,7 @@ export class EventService {
   ) {}
 
   // 모든 행사 조회(isLike포함)
-  async getEventListV2(
+  async getEventList(
     getEventListDto: EventListQueryDto,
   ): Promise<EventListByPageResponseDto> {
     let eventIdList: object[] = [];
@@ -143,6 +143,7 @@ export class EventService {
         });
       });
     }
+
     const result = {
       eventList,
       totalCount,
@@ -153,7 +154,7 @@ export class EventService {
     return result;
   }
 
-  async getEventList(
+  async getEventListV1(
     getEventListDto: EventListQueryDto,
   ): Promise<EventListByPageResponseDto> {
     let eventIdList: object[] = [];
@@ -362,6 +363,19 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
+    if (userId) {
+      const LikeList = await this.eventRepository.findEventLikeByUserId(userId);
+
+      eventList.forEach((event) => {
+        Object.assign(event, { isLike: false });
+        LikeList.forEach((like) => {
+          if (event.id === like.id) {
+            Object.assign(event, { isLike: true });
+          }
+        });
+      });
+    }
+
     const result = {
       eventList,
       totalCount,
@@ -445,11 +459,24 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
+    if (userId) {
+      const LikeList = await this.eventRepository.findEventLikeByUserId(userId);
+
+      eventList.forEach((event) => {
+        Object.assign(event, { isLike: false });
+        LikeList.forEach((like) => {
+          if (event.id === like.id) {
+            Object.assign(event, { isLike: true });
+          }
+        });
+      });
+    }
+
     return eventList;
   }
 
   // 인기 top10
-  async getEventListByPopularity(): Promise<any> {
+  async getEventListByPopularity(userId: string): Promise<any> {
     // 이벤트 조회
     const eventList = await this.eventRepository.findEventByPopularity();
 
@@ -504,11 +531,24 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
+    if (userId) {
+      const LikeList = await this.eventRepository.findEventLikeByUserId(userId);
+
+      eventList.forEach((event) => {
+        Object.assign(event, { isLike: false });
+        LikeList.forEach((like) => {
+          if (event.id === like.id) {
+            Object.assign(event, { isLike: true });
+          }
+        });
+      });
+    }
+
     return eventList;
   }
 
   // 새로 올라온 행사
-  async getNewEventList(): Promise<any> {
+  async getNewEventList(userId: string): Promise<any> {
     // 이벤트 조회
     const eventList = await this.eventRepository.findNewEventList();
 
@@ -563,10 +603,23 @@ export class EventService {
       Object.assign(event, { eventTags });
     });
 
+    if (userId) {
+      const LikeList = await this.eventRepository.findEventLikeByUserId(userId);
+
+      eventList.forEach((event) => {
+        Object.assign(event, { isLike: false });
+        LikeList.forEach((like) => {
+          if (event.id === like.id) {
+            Object.assign(event, { isLike: true });
+          }
+        });
+      });
+    }
+
     return eventList;
   }
 
-  async getEventDetail(eventId: string) {
+  async getEventDetail(eventId: string, userId: string = '') {
     const event = await this.eventRepository.findOneEventByEventId(eventId);
 
     if (!event) {
@@ -588,6 +641,11 @@ export class EventService {
     event.targetArtists = artistList;
 
     event.eventTags = tagList;
+
+    event.isLike = await this.eventRepository.checkLikeStatus({
+      eventId,
+      userId,
+    });
 
     return event;
   }
@@ -648,6 +706,10 @@ export class EventService {
         }
       });
       Object.assign(event, { eventTags });
+    });
+
+    eventList.forEach((event) => {
+      Object.assign(event, { isLike: true });
     });
 
     return eventList;

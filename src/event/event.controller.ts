@@ -143,7 +143,6 @@ export class EventController {
     }
   }
 
-  // v2
   @ApiBearerAuth('accessToken')
   @ApiOperation({
     summary: '(메인페이지) 내 아티스트의 일주일 내 등록된 행사',
@@ -175,15 +174,22 @@ export class EventController {
     summary: '인기 TOP 10',
     description: '(메인페이지) 가장 인기있는 행사',
   })
+  @ApiQuery({
+    name: 'userId',
+    description: '로그인한 userId',
+    required: false,
+  })
   @ApiOkResponse({
     description: '가장 인기있는 행사 목록',
     type: [Event],
   })
   @UseInterceptors(EventResponseInterceptor)
   @Get('/popularity')
-  async getEventListByPopularity(): Promise<any> {
+  async getEventListByPopularity(
+    @Query('userId') userId: string,
+  ): Promise<any> {
     try {
-      return await this.eventService.getEventListByPopularity();
+      return await this.eventService.getEventListByPopularity(userId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -195,15 +201,20 @@ export class EventController {
     summary: '최신 등록',
     description: '(메인페이지) 새로 올라온 행사(일주일)',
   })
+  @ApiQuery({
+    name: 'userId',
+    description: '로그인한 userId',
+    required: false,
+  })
   @ApiOkResponse({
     description: '새로 올라온 행사 목록',
     type: [Event],
   })
   @UseInterceptors(EventResponseInterceptor)
   @Get('/new')
-  async getNewEventList(): Promise<Event[]> {
+  async getNewEventList(@Query('userId') userId: string): Promise<Event[]> {
     try {
-      return await this.eventService.getNewEventList();
+      return await this.eventService.getNewEventList(userId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -332,6 +343,11 @@ export class EventController {
     description: '조회할 이벤트의 ID',
     example: 'be14e489-1b39-422e-aef2-f9041ef9e375',
   })
+  @ApiQuery({
+    name: 'userId',
+    description: '이벤트 ID',
+    required: false,
+  })
   @ApiOkResponse({
     description: '행사의 상세 내역',
     type: Event,
@@ -340,9 +356,10 @@ export class EventController {
   @Get(':eventId')
   async getEventDetail(
     @Param('eventId') eventId: string,
+      @Query('userId') userId: string,
   ): Promise<Event | null> {
     try {
-      return await this.eventService.getEventDetail(eventId);
+      return await this.eventService.getEventDetail(eventId, userId);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);

@@ -1,11 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmpty } from 'class-validator';
 
 export class EventListRequest {
-  // @ApiPropertyOptional({
-  //   description: '유저 ID',
-  //   example: 'userId',
-  // })
-  // userId: string;
+  @ApiPropertyOptional({
+    description: '유저 ID',
+    example: 'userId',
+  })
+  @IsEmpty()
+    userId: string;
 
   @ApiPropertyOptional({
     description: '조회할 그룹명 또는 아티스트이름',
