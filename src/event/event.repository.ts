@@ -257,7 +257,7 @@ export class EventRepository {
 
       // 정렬 필터
 
-      query.orderBy('e.sequence', 'DESC');
+      query.orderBy('e.sequence', 'DESC').limit(20);
 
       const eventList = await query.getRawMany();
 

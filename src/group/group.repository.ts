@@ -22,11 +22,13 @@ export class GroupRepository {
 
       let query = ' SELECT g.id , g.group_name AS name, g.group_image AS image, "group" as type'
         + ' FROM `groups` g'
+        + ' LEFT JOIN artist_groups ag on ag.group_id = g.id'
+        + ' LEFT JOIN `artists` a on a.id = ag.artist_id'
         + ' WHERE 1 = 1';
 
       if (keyword) {
         // eslint-disable-next-line max-len
-        query += ` AND g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
+        query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
       }
 
       query
