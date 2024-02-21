@@ -28,6 +28,9 @@ async function bootstrap() {
     .build();
   app.enableCors({
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 744d8fa (fix: allow origin all (#273))
     // origin: [
     //   'http://localhost:3000',
     //   'localhost:3000',
@@ -35,6 +38,7 @@ async function bootstrap() {
     //   'myopener.kr',
     // ],
     origin: true,
+<<<<<<< HEAD
 =======
     origin: [
       'http://localhost:3000',
@@ -43,6 +47,8 @@ async function bootstrap() {
       'myopener.kr',
     ],
 >>>>>>> ab210df (fix: origin 추가 (#271) (#272))
+=======
+>>>>>>> 744d8fa (fix: allow origin all (#273))
     allowedHeaders: ['Authorization', 'Set-Cookie'],
     credentials: true,
     methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
