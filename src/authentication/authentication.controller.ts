@@ -19,13 +19,14 @@ import {
   ApiNotFoundResponse,
   ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
-import { JsonWebTokenError } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { InvalidException } from 'src/user/exception/invalid.exception';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { plainToClass } from 'class-transformer';
 import { UserTokenDto } from 'src/user/dto/user.token.dto';
+import { ConfigService } from '@nestjs/config';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
@@ -36,7 +37,8 @@ import { AuthenticationGenerateTokenResponse } from './swagger/authentication.to
 import { InvalidEmailException } from './api/exception/InvalidEmailException';
 import { NotExistException } from './exception/not.exist.exception';
 import { AuthenticationLoginNotFound } from './swagger/authentication.login.notfound';
-import { CustomRequest } from './interface/Request';
+import { Cookie, CustomRequest } from './interface/Request';
+import { GenerateTokenDto } from './dto/generate.token.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -46,6 +48,8 @@ export class AuthenticationController {
   constructor(
     private readonly authenticationService: AuthenticationService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Public()
@@ -125,15 +129,32 @@ export class AuthenticationController {
   })
   @Public()
   async generateToken(
-    @Req() req: CustomRequest,
+    @Body() body: GenerateTokenDto,
+      @Req() req: CustomRequest,
       @Res({ passthrough: true }) res: Response,
   ): Promise<void | null> {
     try {
-      const accessToken = await this.authenticationService.generateToken(
-        req.cookie,
+      // TODO 리팩터링
+      const cookie = req.headers.cookie?.split(';').reduce((acc, str) => {
+        const [key, value] = str.replace(' ', '').split('=');
+        acc[key] = value;
+        return acc;
+      }, {}) as Cookie;
+
+      const tokenOwner = await this.jwtService.verifyAsync(
+        cookie.refreshToken,
+        {
+          secret: this.configService.get('REFRESH_SECRET'),
+        },
       );
 
-      const user = await this.userService.getUserById(req.user.id);
+      if (body.userId !== tokenOwner.userId) {
+        throw new JsonWebTokenError('not same user and token');
+      }
+
+      const accessToken = await this.authenticationService.generateToken(cookie);
+
+      const user = await this.userService.getUserById(tokenOwner.userId);
 
       res.cookie('accessToken', accessToken, {
         secure: true,
@@ -141,7 +162,8 @@ export class AuthenticationController {
         httpOnly: true,
         path: '/api',
       });
-      res.cookie('refreshToken', req.cookie.refreshToken, {
+
+      res.cookie('refreshToken', cookie.refreshToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
