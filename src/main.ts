@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as express from 'express';
 import AppModule from './app.module';
 
 // 새로고침해도 토큰 유지 옵션
@@ -31,6 +30,7 @@ async function bootstrap() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 744d8fa (fix: allow origin all (#273))
     // origin: [
@@ -42,25 +42,28 @@ async function bootstrap() {
     origin: true,
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 6b58f1b (Fix/token generate (#277))
     origin: [
       'http://localhost:3000',
       'localhost:3000',
       'https://myopener.kr',
       'myopener.kr',
     ],
+<<<<<<< HEAD
 >>>>>>> ab210df (fix: origin 추가 (#271) (#272))
 =======
 >>>>>>> 744d8fa (fix: allow origin all (#273))
 =======
     origin: ['http://localhost:3000', 'localhost:3000'],
 >>>>>>> ef85026 (hotfix/image-upload)
+=======
+    // origin: true,
+>>>>>>> 6b58f1b (Fix/token generate (#277))
     allowedHeaders: ['Authorization', 'Set-Cookie'],
     credentials: true,
     methods: ['GET', 'PATCH', 'POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
   });
-
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   const document = SwaggerModule.createDocument(app, config);
 

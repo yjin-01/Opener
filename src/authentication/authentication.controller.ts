@@ -123,6 +123,7 @@ export class AuthenticationController {
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: AuthenticationLoginBadrequest,
   })
+  @Public()
   async generateToken(
     @Req() req: CustomRequest,
       @Res({ passthrough: true }) res: Response,
