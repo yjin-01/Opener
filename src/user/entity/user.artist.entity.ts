@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
 import { Artist } from 'src/artist/entity/artist.entity';
+import { Group } from 'src/group/entity/group.entity';
 import { User } from './user.entity';
 // https://stackoverflow.com/questions/46589957/es6-modules-and-circular-dependency/46593566#46593566
 @Exclude()
@@ -31,6 +32,10 @@ export class UserToArtist {
   @Expose()
   @Column('uuid', { name: 'artist_id' })
     artistId: string;
+
+  @Expose()
+  @Column('uuid', { name: 'group_id' })
+    groupId: string;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -65,4 +70,11 @@ export class UserToArtist {
   })
   @JoinColumn({ name: 'artist_id' })
     artist: Artist;
+
+  @ManyToOne(() => Group, {
+    createForeignKeyConstraints: false,
+    nullable: false,
+  })
+  @JoinColumn({ name: 'group_id' })
+    group: Group;
 }

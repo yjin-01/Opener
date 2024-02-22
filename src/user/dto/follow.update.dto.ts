@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsUUID } from 'class-validator';
+import { IsUUID, ValidateIf } from 'class-validator';
 
 class FollowArtist {
   userId: string;
@@ -7,14 +7,34 @@ class FollowArtist {
   artistId: string;
 }
 
+class FollowGroup {
+  userId: string;
+
+  groupId: string;
+}
+
 export class FollowUpdateDto {
   @IsUUID('all', { each: true })
+  @ValidateIf((object, value) => value.length > 0)
     deleteArtistIds: string[];
 
   @IsUUID('all', { each: true })
+  @ValidateIf((object, value) => value.length > 0)
     addArtistIds: string[];
+
+  @IsUUID('all', { each: true })
+  @ValidateIf((object, value) => value.length > 0)
+    deleteGroupIds: string[];
+
+  @IsUUID('all', { each: true })
+  @ValidateIf((object, value) => value.length > 0)
+    addGroupIds: string[];
 
   toFollowArtist(userId: string): FollowArtist[] {
     return this.addArtistIds.map((artistId) => plainToInstance(FollowArtist, { userId, artistId }));
+  }
+
+  toFollowGroup(userId: string): FollowGroup[] {
+    return this.addArtistIds.map((groupId) => plainToInstance(FollowGroup, { userId, groupId }));
   }
 }

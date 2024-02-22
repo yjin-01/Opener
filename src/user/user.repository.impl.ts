@@ -32,6 +32,19 @@ export class UserRepositoryImple implements UserRepository {
             .execute();
         }
 
+        if (changeFollowDto.deleteGroupIds.length > 0) {
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .delete()
+            .from(UserToArtist)
+            .where('user_id = :userId', { userId })
+            .andWhere('group_id IN(:...ids)', {
+              ids: changeFollowDto.deleteGroupIds,
+            })
+            .execute();
+        }
+
         if (changeFollowDto.addArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
@@ -39,6 +52,16 @@ export class UserRepositoryImple implements UserRepository {
             .insert()
             .into(UserToArtist)
             .values(changeFollowDto.toFollowArtist(userId))
+            .execute();
+        }
+
+        if (changeFollowDto.addGroupIds.length > 0) {
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .insert()
+            .into(UserToArtist)
+            .values(changeFollowDto.toFollowGroup(userId))
             .execute();
         }
       });
