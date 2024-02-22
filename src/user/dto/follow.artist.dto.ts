@@ -6,11 +6,7 @@ export class FollowArtist {
     id: string;
 
   @Expose({ name: 'artistName' })
-<<<<<<< HEAD
     name: string;
-=======
-    nickName: string;
->>>>>>> e2e910d (Feat/remove artst prefix (#283) (#284))
 
   @Expose({ name: 'artistImage' })
     image: string;
