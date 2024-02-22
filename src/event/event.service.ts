@@ -174,11 +174,25 @@ export class EventService {
         size: size ? Number(size) : 12,
       };
     }
-    const userArtistIds = userArtistList.map((el) => el.artistId);
+    const userArtistIds = userArtistList.map((el) => {
+      if (el.artistId) {
+        return el.artistId;
+      }
+      return el.groupId;
+    });
 
     const targetEvent = await this.eventRepository.findEventTargetByTargetId({
       userArtistIds,
     });
+
+    if (targetEvent.length === 0) {
+      return {
+        eventList: [],
+        totalCount: 0,
+        page: page ? Number(page) : 1,
+        size: size ? Number(size) : 12,
+      };
+    }
 
     targetEvent.forEach((el) => {
       eventIdList.push(el.eventId);
@@ -280,11 +294,20 @@ export class EventService {
     if (userArtistList.length === 0) {
       return [];
     }
-    const userArtistIds = userArtistList.map((el) => el.artistId);
+    const userArtistIds = userArtistList.map((el) => {
+      if (el.artistId) {
+        return el.artistId;
+      }
+      return el.groupId;
+    });
 
     const targetEvent = await this.eventRepository.findEventTargetByTargetId({
       userArtistIds,
     });
+
+    if (targetEvent.length === 0) {
+      return [];
+    }
 
     targetEvent.forEach((el) => {
       eventIdList.push(el.eventId);

@@ -203,11 +203,9 @@ export class EventRepository {
       // 현재 날짜 기준으로 검색
       const today = moment().format('YYYY-MM-DD'); // 현재 날짜 및 시간
 
-      query.andWhere('e.startDate <= :today', { today });
       query.andWhere('e.endDate >= :today', { today });
 
       // 정렬 필터
-
       query
         .orderBy('COUNT(eventLikes.id)', 'DESC')
         .addOrderBy('e.sequence', 'DESC')
