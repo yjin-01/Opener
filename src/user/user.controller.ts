@@ -394,10 +394,17 @@ export class UserController {
   async signOut(
     @Param('userId') userId: string,
       @Req() req: CustomRequest,
+      @Res() res: Response,
   ): Promise<void | null> {
     try {
       this.logger.debug(`in signOut userId:${userId} user:${req.user}`);
-      return await this.userService.deleteUser(userId, req.user.userId);
+      const result = await this.userService.deleteUser(userId, req.user.userId);
+      console.error(result);
+
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+
+      res.json();
     } catch (error) {
       this.logger.error(`in signOut ${error}`);
       if (error instanceof InvalidException) {

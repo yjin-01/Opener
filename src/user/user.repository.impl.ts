@@ -85,7 +85,8 @@ export class UserRepositoryImple implements UserRepository {
         ]);
       });
     } catch (error) {
-      throw new Error(error);
+      console.log(error);
+      throw error;
     }
   }
 
