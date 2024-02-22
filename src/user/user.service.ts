@@ -32,13 +32,16 @@ export class UserService {
   async deleteUser(userId: string, tokenUserId: string): Promise<void> {
     try {
       this.logger.debug(`${userId}, ${tokenUserId}`);
+      console.log(`${userId}, ${tokenUserId}`);
       if (userId !== tokenUserId) {
         this.logger.debug('invalid user and token');
+        console.log('invalid user and token');
         throw new InvalidException('invalid user and token');
       }
 
       return await this.userRepositoryImple.delete(userId);
     } catch (error) {
+      console.log(error);
       this.logger.debug(error);
       throw error;
     }
