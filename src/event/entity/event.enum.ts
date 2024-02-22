@@ -1,7 +1,7 @@
 export enum EventTypeEnum {
   CAFE = '카페',
-  POPUPSTROE = '팝업스토어',
-  SHARING = '나눔',
+  PHOTOBOOTH = '포토부스',
+  FLOWERSHOP = '꽃집',
   ADVERTISEMENT = '팬광고',
   SCREENING = '상영회',
   ETC = '기타',
