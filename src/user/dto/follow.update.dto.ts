@@ -35,6 +35,6 @@ export class FollowUpdateDto {
   }
 
   toFollowGroup(userId: string): FollowGroup[] {
-    return this.addArtistIds.map((groupId) => plainToInstance(FollowGroup, { userId, groupId }));
+    return this.addGroupIds.map((groupId) => plainToInstance(FollowGroup, { userId, groupId }));
   }
 }

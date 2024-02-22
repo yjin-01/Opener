@@ -98,8 +98,10 @@ export class UserRepositoryImple implements UserRepository {
         .getRepository(UserToArtist)
         .createQueryBuilder('ua')
         .leftJoinAndSelect('ua.artist', 'a')
+        .leftJoinAndSelect('ua.group', 'g')
         .select(['ua.id'])
         .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
+        .addSelect(['g.id', 'g.groupName', 'g.groupImage'])
         .where('ua.userId = :userId', { userId })
         .getMany();
     } catch (error) {

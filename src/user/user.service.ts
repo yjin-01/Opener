@@ -65,7 +65,24 @@ export class UserService {
       }
 
       const result = await this.userRepositoryImple.findFollow(userId);
-      return result!.map((userArtist) => plainToInstance(FollowArtist, userArtist.artist));
+      return result!
+        .map((following) => {
+          if (following.artist) {
+            return {
+              id: following.artist.id,
+              name: following.artist.artistName,
+              type: 'member',
+              Image: following.artist.artistImage,
+            };
+          }
+          return {
+            id: following.group.id,
+            name: following.group.groupName,
+            type: 'group',
+            Image: following.group.groupName,
+          };
+        })
+        .map((userArtist) => plainToInstance(FollowArtist, userArtist));
     } catch (error) {
       console.error(error);
       throw error;

@@ -12,7 +12,7 @@ export class FollowArtistUpdateRequest {
     deleteArtistIds: string[];
 
   @ApiPropertyOptional({
-    name: 'deleteArtistIds',
+    name: 'deleteGroupIds',
     description: '삭제할 팔로우 아티스트 그룹 아이디',
     default: [
       'f2afbab4-9260-4545-af83-7915d5c2118a',
@@ -32,11 +32,11 @@ export class FollowArtistUpdateRequest {
     addArtistIds: string[];
 
   @ApiPropertyOptional({
-    name: 'addArtistIds',
+    name: 'addGroupIds',
     description: '새로 팔로우할 아티스트 그룹 아이디',
     default: [
-      '3c36e3e4-4180-4b09-aecb-77aa5e4b646f',
-      '15e2c65f-9d5b-43e2-ab52-004bd2b47435',
+      '6974abde-338a-457c-9442-c3b18010b833',
+      '639fd8d1-a865-44bc-ad1d-93475105f2cf',
     ],
   })
     addGroupIds: string[];
