@@ -6,7 +6,7 @@ export class FollowArtist {
     id: string;
 
   @Expose({ name: 'artistName' })
-    nickName: string;
+    name: string;
 
   @Expose({ name: 'artistImage' })
     image: string;
