@@ -15,6 +15,7 @@ import {
   Res,
   Req,
   Put,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -72,6 +73,8 @@ export class UserController {
     private readonly authService: AuthenticationService,
   ) {}
 
+  private readonly logger = new Logger('UserController');
+
   @Get('/:userId/artists')
   @ApiBearerAuth('accessToken')
   @ApiOperation({
@@ -109,11 +112,14 @@ export class UserController {
     @Param('userId') userId: string,
   ): Promise<FollowArtist[] | null> {
     try {
+      this.logger.debug(`In getFollowArtists userId:${userId}`);
       return await this.userService.getMyArtistList(userId);
     } catch (error) {
       if (error instanceof NotExistException) {
+        this.logger.error(error);
         throw new NotFoundException(error);
       }
+      this.logger.error(`in getFollowArtists error:${error}`);
       throw new InternalServerErrorException(error);
     }
   }
@@ -152,10 +158,12 @@ export class UserController {
       @Body(new UserValidationPipe()) followDto: FollowUpdateDto,
   ): Promise<void | null> {
     try {
-      console.log('updateFollowArtist in');
-      console.log(followDto);
+      this.logger.debug(
+        `in updateFollowArtist userId:${userId} followDto:${followDto}`,
+      );
       await this.userService.changeFollowArtist(userId, followDto);
     } catch (error) {
+      this.logger.error(`in updateFollowArtist error:${error}`);
       if (error instanceof NotExistException) {
         throw new NotFoundException(error);
       }
@@ -258,8 +266,12 @@ export class UserController {
       @Body(new UserValidationPipe()) followDto: FollowDto,
   ): Promise<FollowArtistResponseDto | null> {
     try {
+      this.logger.debug(
+        `in followArtist userId:${userId}, followDto:${followDto}`,
+      );
       return await this.userService.addArtist(userId, followDto);
     } catch (error) {
+      this.logger.error(`in followArtist, error:${error}`);
       if (error instanceof NotExistException) {
         throw new NotFoundException(error);
       }
@@ -294,8 +306,10 @@ export class UserController {
     @Query('search') search: string,
   ): Promise<UserNicknameResponse | null> {
     try {
+      this.logger.debug(`in checkDuplicatedNickname searchQuery:${search}`);
       return await this.userService.isDuplicatedNickname(search);
     } catch (error) {
+      this.logger.error(`in checkDuplicatedNickname, error:${error}`);
       throw new InternalServerErrorException(error);
     }
   }
@@ -324,9 +338,11 @@ export class UserController {
       @Res() res: Response,
   ): Promise<void | null> {
     try {
+      this.logger.debug(`in signup userSignupDto:${userSignupDto}`);
       const user = await this.userService.createUser(userSignupDto);
       const token = await this.authService.generateTokenPair(user);
-
+      this.logger.debug(`in signup user:${user}`);
+      this.logger.debug(`in signup token:${token}`);
       res.cookie('accessToken', token.accessToken, {
         secure: true,
         sameSite: 'strict',
@@ -342,6 +358,7 @@ export class UserController {
 
       res.json(plainToInstance(UserDto, user));
     } catch (error) {
+      this.logger.error(`in sinup ${error}`);
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
       }
@@ -379,10 +396,10 @@ export class UserController {
       @Req() req: CustomRequest,
   ): Promise<void | null> {
     try {
-      console.log('signout in');
-      console.log(userId);
+      this.logger.debug(`in signOut userId:${userId} user:${req.user}`);
       return await this.userService.deleteUser(userId, req.user.userId);
     } catch (error) {
+      this.logger.error(`in signOut ${error}`);
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
       }
@@ -426,8 +443,12 @@ export class UserController {
       @Body(new UserValidationPipe()) userUpdateDto: UserUpdateProfileDto,
   ): Promise<number | undefined> {
     try {
+      this.logger.debug(
+        `in updateMyProfile userId:${userId}, userUpdateDto:${userUpdateDto}`,
+      );
       return await this.userService.updateProfile(userUpdateDto, userId);
     } catch (error) {
+      this.logger.error(`in updateMyProfile ${error}`);
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
       }
@@ -471,8 +492,12 @@ export class UserController {
       @Body(new UserValidationPipe()) userUpdateDto: UserUpdatePasswordDto,
   ): Promise<number | undefined> {
     try {
+      this.logger.debug(
+        `in updateMyPassword userId:${userId}, userUpdateDto:${userUpdateDto}`,
+      );
       return await this.userService.updatePassword(userUpdateDto, userId);
     } catch (error) {
+      this.logger.error('in updateMyPassword', error);
       if (error instanceof InvalidException) {
         throw new BadRequestException(error);
       }

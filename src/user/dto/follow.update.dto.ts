@@ -1,13 +1,13 @@
 import { plainToInstance } from 'class-transformer';
 import { IsUUID, ValidateIf } from 'class-validator';
 
-class FollowArtist {
+export class FollowArtist {
   userId: string;
 
   artistId: string;
 }
 
-class FollowGroup {
+export class FollowGroup {
   userId: string;
 
   groupId: string;

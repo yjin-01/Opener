@@ -2,6 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { plainToInstance } from 'class-transformer';
+import { EntityManager } from 'typeorm';
+import { Artist } from 'src/artist/entity/artist.entity';
+import { Group } from 'src/group/entity/group.entity';
 import { UserRepository } from './interface/user.repository';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { enctypt } from './utils/encrypt';
@@ -21,6 +24,7 @@ export class UserService {
   constructor(
     private readonly configService: ConfigService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
+    private entityManager: EntityManager,
   ) {}
 
   async deleteUser(userId: string, tokenUserId: string): Promise<void> {
@@ -154,7 +158,26 @@ export class UserService {
         await user.encrypt(this.configService, enctypt);
       }
 
-      return await this.userRepositoryImple.create(user);
+      const artistIds = await this.entityManager
+        .getRepository(Artist)
+        .createQueryBuilder('a')
+        .select(['a.id AS artistId'])
+        .where('id IN(:...ids)', { ids: user.myArtists })
+        .execute();
+
+      const groupIds = await this.entityManager
+        .getRepository(Group)
+        .createQueryBuilder('g')
+        .select(['g.id AS groupId'])
+        .where('id IN(:...ids)', { ids: user.myArtists })
+        .execute();
+
+      console.log(artistIds.map, groupIds);
+      return await this.userRepositoryImple.createWithIds(
+        user,
+        artistIds,
+        groupIds,
+      );
     } catch (error) {
       console.error(error);
       throw error;
