@@ -72,14 +72,14 @@ export class UserService {
               id: following.artist.id,
               name: following.artist.artistName,
               type: 'member',
-              Image: following.artist.artistImage,
+              image: following.artist.artistImage,
             };
           }
           return {
             id: following.group.id,
             name: following.group.groupName,
             type: 'group',
-            Image: following.group.groupName,
+            image: following.group.groupImage,
           };
         })
         .map((userArtist) => plainToInstance(FollowArtist, userArtist));
