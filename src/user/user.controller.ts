@@ -152,6 +152,8 @@ export class UserController {
       @Body(new UserValidationPipe()) followDto: FollowUpdateDto,
   ): Promise<void | null> {
     try {
+      console.log('updateFollowArtist in');
+      console.log(followDto);
       await this.userService.changeFollowArtist(userId, followDto);
     } catch (error) {
       if (error instanceof NotExistException) {
@@ -377,6 +379,8 @@ export class UserController {
       @Req() req: CustomRequest,
   ): Promise<void | null> {
     try {
+      console.log('signout in');
+      console.log(userId);
       return await this.userService.deleteUser(userId, req.user.userId);
     } catch (error) {
       if (error instanceof InvalidException) {
