@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { plainToInstance } from 'class-transformer';
@@ -27,15 +27,19 @@ export class UserService {
     private entityManager: EntityManager,
   ) {}
 
+  private readonly logger = new Logger('UserController');
+
   async deleteUser(userId: string, tokenUserId: string): Promise<void> {
     try {
+      this.logger.debug(`${userId}, ${tokenUserId}`);
       if (userId !== tokenUserId) {
+        this.logger.debug('invalid user and token');
         throw new InvalidException('invalid user and token');
       }
 
       return await this.userRepositoryImple.delete(userId);
     } catch (error) {
-      console.error(error);
+      this.logger.debug(error);
       throw error;
     }
   }
