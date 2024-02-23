@@ -403,14 +403,14 @@ export class UserController {
       this.logger.debug(`in signOut userId:${userId} user:${req.user.userId}`);
       await this.userService.deleteUser(userId, req.user.userId);
 
-      res.cookie('accessToken', {
+      res.cookie('accessToken', '', {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
         maxAge: 0,
       });
-      res.cookie('refreshToken', {
+      res.cookie('refreshToken', '', {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
