@@ -399,12 +399,23 @@ export class UserController {
       @Res() res: Response,
   ): Promise<void | null> {
     try {
-      this.logger.debug(`in signOut userId:${userId} user:${req.user}`);
-      const result = await this.userService.deleteUser(userId, req.user.userId);
-      console.error(result);
+      this.logger.debug(`in signOut userId:${userId} user:${req.user.userId}`);
+      await this.userService.deleteUser(userId, req.user.userId);
 
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      res.cookie('accessToken', {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+        maxAge: 0,
+      });
+      res.cookie('refreshToken', {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+        maxAge: 0,
+      });
 
       res.json();
     } catch (error) {

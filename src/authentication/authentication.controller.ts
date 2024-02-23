@@ -209,7 +209,7 @@ export class AuthenticationController {
           secret: this.configService.get('REFRESH_SECRET'),
         },
       );
-      this.logger.debug(`token owner:${tokenOwner}`);
+      this.logger.debug(`token owner:${tokenOwner.userId}`);
 
       if (body.userId !== tokenOwner.userId) {
         this.logger.error(
@@ -237,7 +237,7 @@ export class AuthenticationController {
         path: '/api',
       });
       const result = plainToClass(UserTokenDto, user);
-      this.logger.debug(`response body:${result}`);
+      this.logger.debug(`response body:${(result.email, result.signupMethod)}`);
       res.json(result);
     } catch (err) {
       this.logger.error(`In generate error:${err}`);
