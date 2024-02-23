@@ -78,14 +78,7 @@ export class AuthenticationService {
         loginDto,
         this.configService,
       ).getTokenInfo();
-      console.log(tokenInfo);
       const user = await this.userRepository.findBy(tokenInfo);
-      console.log(user);
-      console.log(user?.signupMethod);
-      console.log(loginDto.signinMethod);
-      if (user?.signupMethod !== loginDto.signinMethod) {
-        throw new InvalidException('invalid signinMethod');
-      }
 
       if (!user) {
         const newUser = await this.userRepository.create(
@@ -94,6 +87,10 @@ export class AuthenticationService {
           }),
         );
         return newUser;
+      }
+
+      if (user?.signupMethod !== loginDto.signinMethod) {
+        throw new InvalidException('invalid signinMethod');
       }
 
       return user;
