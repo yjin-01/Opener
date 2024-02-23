@@ -27,7 +27,7 @@ export class UserService {
     private entityManager: EntityManager,
   ) {}
 
-  private readonly logger = new Logger('UserController');
+  private readonly logger = new Logger('UserService');
 
   async deleteUser(userId: string, tokenUserId: string): Promise<void> {
     try {
@@ -179,14 +179,13 @@ export class UserService {
         .where('id IN(:...ids)', { ids: user.myArtists })
         .execute();
 
-      console.log(artistIds.map, groupIds);
       return await this.userRepositoryImple.createWithIds(
         user,
         artistIds,
         groupIds,
       );
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
       throw error;
     }
   }

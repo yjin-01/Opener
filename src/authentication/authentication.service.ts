@@ -81,6 +81,10 @@ export class AuthenticationService {
 
       const user = await this.userRepository.findBy(tokenInfo);
 
+      if (user?.signupMethod !== loginDto.signinMethod) {
+        throw new InvalidException('invalid signinMethod');
+      }
+
       if (!user) {
         const newUser = await this.userRepository.create(
           plainToInstance(UserSignupDto, tokenInfo, {
