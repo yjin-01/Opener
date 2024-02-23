@@ -42,7 +42,7 @@ export class AuthenticationGuard implements CanActivate {
         });
 
         request.user = payload;
-        request.cookie = cookie;
+        request.cookie = token;
         return true;
       }
 

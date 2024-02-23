@@ -348,14 +348,15 @@ export class UserController {
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600,
+        maxAge: 3600 * 1000,
       });
+
       res.cookie('refreshToken', token.refreshToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600 * 24 * 3000,
+        maxAge: 3600 * 24 * 3000 * 1000,
       });
 
       res.json(plainToInstance(UserDto, user));
