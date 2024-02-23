@@ -186,11 +186,22 @@ export class AuthenticationController {
       this.logger.debug(
         `In generateToken request cookie:${req.headers.cookie}`,
       );
-      const cookie = req.headers.cookie?.split(';').reduce((acc, str) => {
+
+      if (!req.headers.cookie) {
+        this.logger.error('not has cookie in headers');
+        throw new UnauthorizedException();
+      }
+
+      const cookie = req.headers.cookie.split(';').reduce((acc, str) => {
         const [key, value] = str.replace(' ', '').split('=');
         acc[key] = value;
         return acc;
       }, {}) as Cookie;
+
+      if (!cookie.refreshToken) {
+        this.logger.error('not has refreshToken in cookie');
+        throw new UnauthorizedException();
+      }
 
       const tokenOwner = await this.jwtService.verifyAsync(
         cookie.refreshToken,
@@ -198,12 +209,17 @@ export class AuthenticationController {
           secret: this.configService.get('REFRESH_SECRET'),
         },
       );
+      this.logger.debug(`token owner:${tokenOwner}`);
 
       if (body.userId !== tokenOwner.userId) {
+        this.logger.error(
+          `userId:${body.userId}, userIdInToken:${tokenOwner.userId}`,
+        );
         throw new JsonWebTokenError('not same user and token');
       }
 
       const accessToken = await this.authenticationService.generateToken(cookie);
+      this.logger.debug(`new accessToken:${accessToken}`);
       const user = await this.userService.getUserById(tokenOwner.userId);
 
       res.cookie('accessToken', accessToken, {
@@ -220,8 +236,9 @@ export class AuthenticationController {
         httpOnly: true,
         path: '/api',
       });
-
-      res.json(plainToClass(UserTokenDto, user));
+      const result = plainToClass(UserTokenDto, user);
+      this.logger.debug(`response body:${result}`);
+      res.json(result);
     } catch (err) {
       this.logger.error(`In generate error:${err}`);
       if (err instanceof JsonWebTokenError) {
