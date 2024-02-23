@@ -78,9 +78,11 @@ export class AuthenticationService {
         loginDto,
         this.configService,
       ).getTokenInfo();
-
+      console.log(tokenInfo);
       const user = await this.userRepository.findBy(tokenInfo);
-
+      console.log(user);
+      console.log(user?.signupMethod);
+      console.log(loginDto.signinMethod);
       if (user?.signupMethod !== loginDto.signinMethod) {
         throw new InvalidException('invalid signinMethod');
       }
