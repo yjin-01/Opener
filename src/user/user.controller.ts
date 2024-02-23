@@ -356,7 +356,7 @@ export class UserController {
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600 * 24 * 3000 * 1000,
+        maxAge: 3600 * 1000 * 24 * 30,
       });
 
       res.json(plainToInstance(UserDto, user));

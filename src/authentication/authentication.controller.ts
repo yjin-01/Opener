@@ -94,14 +94,14 @@ export class AuthenticationController {
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600,
+        maxAge: 3600 * 1000,
       });
       res.cookie('refreshToken', token.refreshToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600 * 24 * 3000,
+        maxAge: 3600 * 1000 * 24 * 30,
       });
       const result = plainToClass(UserDto, user);
       this.logger.debug(`In signin Return ${result}`);
@@ -227,7 +227,7 @@ export class AuthenticationController {
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
-        maxAge: 3600,
+        maxAge: 3600 * 1000,
       });
 
       res.cookie('refreshToken', cookie.refreshToken, {
