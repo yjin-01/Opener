@@ -148,7 +148,7 @@ export class AuthenticationController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void | null> {
     try {
-      res.cookie('accessToken', {
+      res.cookie('accessToken', '', {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
