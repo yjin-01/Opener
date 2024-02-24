@@ -90,6 +90,7 @@ export class NaverApi implements UserInformationApi {
       const tokens = await this.request();
       this.isValid(tokens);
       const userInfo = await this.getUserInfo(tokens!.access_token);
+      console.log('userInfo in naver auth ', userInfo);
       return plainToInstance(NaverResultDto, userInfo.response);
     } catch (error) {
       console.error(error);

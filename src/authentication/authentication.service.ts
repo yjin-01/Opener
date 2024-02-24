@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from 'src/user/interface/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +19,8 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
+  private readonly logger: Logger = new Logger('AuthService');
 
   async generateTokenPair(user): Promise<TokenDto> {
     try {
@@ -78,6 +80,7 @@ export class AuthenticationService {
         loginDto,
         this.configService,
       ).getTokenInfo();
+      this.logger.debug(tokenInfo);
       const user = await this.userRepository.findBy(tokenInfo);
 
       if (!user) {
