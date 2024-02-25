@@ -54,6 +54,8 @@ export class EventService {
 
     // 공통된 eventId만 넣기
     if (tags && keyword) {
+      searchKeyword = searchKeyword.map((el) => el.eventId);
+
       eventIdList = serchTags.filter((it) => searchKeyword.includes(it));
     }
 
