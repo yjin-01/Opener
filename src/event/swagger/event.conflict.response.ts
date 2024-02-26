@@ -6,6 +6,7 @@ export class EventConflitResponse {
     examples: {
       example1: 'Already approved and rejected',
       example2: 'The application has already been reflected',
+      example3: 'The user is not the author',
     },
   })
     message: string;
