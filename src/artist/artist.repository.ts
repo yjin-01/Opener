@@ -24,7 +24,17 @@ export class ArtistRepository {
     const skip = (currentPage - 1) * itemsPerPage;
 
     // eslint-disable-next-line max-len
-    let query = 'SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
+    let query = ' SELECT g.id , g.group_name AS name , g.group_image AS image, "group" as type'
+      + ' FROM `groups` g'
+      + ' WHERE 1 = 1';
+
+    if (keyword) {
+      query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
+    }
+
+    query
+      += ' UNION'
+      + ' SELECT a.id, a.artist_name AS name, a.artist_image AS image, IF(a.is_solo = 1, "solo", "member") as type'
       + ' FROM artists a'
       + ' LEFT JOIN artist_groups ag on ag.artist_id = a.id'
       + ' LEFT JOIN `groups` g on g.id = ag.group_id'
@@ -33,16 +43,6 @@ export class ArtistRepository {
     if (keyword) {
       // eslint-disable-next-line max-len
       query += ` AND (a.artist_name LIKE  ${sql.escape(`%${keyword}%`)} or g.group_name LIKE  ${sql.escape(`%${keyword}%`)})`;
-    }
-
-    query
-      += ' UNION'
-      + ' SELECT g.id , g.group_name , g.group_image, "group" as type'
-      + ' FROM `groups` g'
-      + ' WHERE 1 = 1';
-
-    if (keyword) {
-      query += ` AND  g.group_name LIKE  ${sql.escape(`%${keyword}%`)}`;
     }
 
     let totalCount = await this.entityManager.query(query);
@@ -59,6 +59,29 @@ export class ArtistRepository {
       size: itemsPerPage,
       artistAndGroupList,
     };
+  }
+
+  // 그룹 + 아티스트(멤버 + 솔로)
+  async findAllArtsitAndGroupByMonth({ month }) {
+    // eslint-disable-next-line max-len
+    let query = ' SELECT g.id , g.group_name AS name , g.group_image AS image, g.debut_date AS birthday, "group" as type'
+      + ' FROM `groups` g'
+      + ' WHERE 1 = 1'
+      + ` AND MONTH(g.debut_date) = ${month}`;
+
+    query
+      += ' UNION'
+      + ' SELECT a.id, a.artist_name AS name, a.artist_image AS image'
+      + ' , a.birthday AS birthday, IF(a.is_solo = 1, "solo", "member") as type'
+      + ' FROM artists a'
+      + ' WHERE 1 = 1 '
+      + ` AND MONTH(a.birthday) = ${month}`;
+
+    query += ' ORDER BY DAY(birthday) ASC';
+
+    const artistAndGroupList = await this.entityManager.query(query);
+
+    return artistAndGroupList;
   }
 
   async findAllArtsitByGroup(groupId: string): Promise<Artist[] | null> {

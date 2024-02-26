@@ -2,12 +2,15 @@ import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class FollowArtist {
-  @Expose({ name: 'id' })
-    artistId: string;
+  @Expose()
+    id: string;
 
   @Expose()
-    artistName: string;
+    name: string;
 
   @Expose()
-    artistImage: string;
+    type: string;
+
+  @Expose()
+    image: string;
 }

@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { EventRepository } from 'src/event/event.repository';
+import * as moment from 'moment';
 import { ArtistCreateRequest } from './dto/artist.create.request';
 import { ArtistRepository } from './artist.repository';
 import { ArtistListResponse } from './dto/artist.list.response';
@@ -8,7 +10,10 @@ import { ArtistRequestCreateResponse } from './dto/artistrequest.create.response
 
 @Injectable()
 export class ArtistService {
-  constructor(private readonly artistRepository: ArtistRepository) {}
+  constructor(
+    private readonly artistRepository: ArtistRepository,
+    private readonly eventRepository: EventRepository,
+  ) {}
 
   async createArtist(artistInfo: ArtistCreateRequest): Promise<Artist | null> {
     try {
@@ -32,6 +37,39 @@ export class ArtistService {
         size,
       });
       return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getArtistListByMonth({ month }) {
+    try {
+      const artistList = await this.artistRepository.findAllArtsitAndGroupByMonth({
+        month,
+      });
+
+      const userArtistIds = artistList.map((el) => el.id);
+
+      const targetDate = moment().format('YYYY-MM-DD');
+
+      const targetEvent = await this.eventRepository.findEventTargetByTargetDate(
+        userArtistIds,
+        targetDate,
+      );
+
+      artistList.forEach((artist) => {
+        Object.assign(artist, { eventStatus: false });
+        targetEvent.forEach((event) => {
+          if (artist.id === event.artistId) {
+            Object.assign(artist, { eventStatus: true });
+          } else if (artist.id === event.groupId) {
+            Object.assign(artist, { eventStatus: true });
+          }
+        });
+      });
+
+      return artistList;
     } catch (error) {
       console.error(error);
       throw error;

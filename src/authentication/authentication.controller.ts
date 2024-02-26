@@ -9,6 +9,8 @@ import {
   NotFoundException,
   Res,
   Req,
+  Logger,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,14 +20,16 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
   ApiInternalServerErrorResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
-import { JsonWebTokenError } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { InvalidException } from 'src/user/exception/invalid.exception';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { UserDto } from 'src/user/dto/user.dto';
 import { plainToClass } from 'class-transformer';
 import { UserTokenDto } from 'src/user/dto/user.token.dto';
+import { ConfigService } from '@nestjs/config';
 import { AuthenticationService } from './authentication.service';
 import { AuthenticationLoginRequest } from './swagger/authentication.login.request';
 import { AuthenticationLoginResponse } from './swagger/authentication.login.response';
@@ -36,7 +40,8 @@ import { AuthenticationGenerateTokenResponse } from './swagger/authentication.to
 import { InvalidEmailException } from './api/exception/InvalidEmailException';
 import { NotExistException } from './exception/not.exist.exception';
 import { AuthenticationLoginNotFound } from './swagger/authentication.login.notfound';
-import { CustomRequest } from './interface/Request';
+import { Cookie, CustomRequest } from './interface/Request';
+import { GenerateTokenDto } from './dto/generate.token.dto';
 
 const Public = () => SetMetadata('isPublic', true);
 
@@ -46,7 +51,11 @@ export class AuthenticationController {
   constructor(
     private readonly authenticationService: AuthenticationService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
+
+  private readonly logger = new Logger('AuthController');
 
   @Public()
   @Post()
@@ -76,6 +85,7 @@ export class AuthenticationController {
       @Res({ passthrough: true }) res: Response,
   ): Promise<void | null> {
     try {
+      this.logger.log(`In Signin ${loginDto}`);
       const user = await this.authenticationService.login(loginDto);
       const token = await this.authenticationService.generateTokenPair(user);
 
@@ -84,16 +94,20 @@ export class AuthenticationController {
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
+        maxAge: 3600 * 1000,
       });
       res.cookie('refreshToken', token.refreshToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
+        maxAge: 3600 * 1000 * 24 * 30,
       });
-
-      res.json(plainToClass(UserDto, user));
+      const result = plainToClass(UserDto, user);
+      this.logger.debug(`In signin Return ${result}`);
+      res.json(result);
     } catch (err) {
+      this.logger.error('In Signin ', err);
       if (
         err instanceof InvalidEmailException
         || err instanceof InvalidException
@@ -105,6 +119,44 @@ export class AuthenticationController {
       ) {
         throw new NotFoundException(err);
       }
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  @Public()
+  @Delete()
+  @ApiOperation({
+    summary: '로그아웃',
+    description: '유저가 로그아웃 합니다',
+  })
+  @ApiOkResponse({
+    description: '쿠키가 제거됩니다.',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: AuthenticationLoginBadrequest,
+  })
+  @ApiNotFoundResponse({
+    description: 'API url이 다를 경우 반환합니다',
+    type: AuthenticationLoginNotFound,
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버에서 처리할 수 없을 때 반환합니다',
+  })
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void | null> {
+    try {
+      res.cookie('accessToken', '', {
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: true,
+        path: '/api',
+        maxAge: 0,
+      });
+    } catch (err) {
+      this.logger.error(`In logout error ${err}`);
       throw new InternalServerErrorException(err);
     }
   }
@@ -123,32 +175,72 @@ export class AuthenticationController {
       'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
     type: AuthenticationLoginBadrequest,
   })
+  @Public()
   async generateToken(
-    @Req() req: CustomRequest,
+    @Body() body: GenerateTokenDto,
+      @Req() req: CustomRequest,
       @Res({ passthrough: true }) res: Response,
   ): Promise<void | null> {
     try {
-      const accessToken = await this.authenticationService.generateToken(
-        req.cookie,
+      // TODO 리팩터링
+      this.logger.debug(
+        `In generateToken request cookie:${req.headers.cookie}`,
       );
 
-      const user = await this.userService.getUserById(req.user.id);
+      if (!req.headers.cookie) {
+        this.logger.error('not has cookie in headers');
+        throw new UnauthorizedException();
+      }
+
+      const cookie = req.headers.cookie.split(';').reduce((acc, str) => {
+        const [key, value] = str.replace(' ', '').split('=');
+        acc[key] = value;
+        return acc;
+      }, {}) as Cookie;
+
+      if (!cookie.refreshToken) {
+        this.logger.error('not has refreshToken in cookie');
+        throw new UnauthorizedException();
+      }
+
+      const tokenOwner = await this.jwtService.verifyAsync(
+        cookie.refreshToken,
+        {
+          secret: this.configService.get('REFRESH_SECRET'),
+        },
+      );
+      this.logger.debug(`token owner:${tokenOwner.userId}`);
+
+      if (body.userId !== tokenOwner.userId) {
+        this.logger.error(
+          `userId:${body.userId}, userIdInToken:${tokenOwner.userId}`,
+        );
+        throw new JsonWebTokenError('not same user and token');
+      }
+
+      const accessToken = await this.authenticationService.generateToken(cookie);
+      this.logger.debug(`new accessToken:${accessToken}`);
+      const user = await this.userService.getUserById(tokenOwner.userId);
 
       res.cookie('accessToken', accessToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
+        maxAge: 3600 * 1000,
       });
-      res.cookie('refreshToken', req.cookie.refreshToken, {
+
+      res.cookie('refreshToken', cookie.refreshToken, {
         secure: true,
         sameSite: 'strict',
         httpOnly: true,
         path: '/api',
       });
-
-      res.json(plainToClass(UserTokenDto, user));
+      const result = plainToClass(UserTokenDto, user);
+      this.logger.debug(`response body:${(result.email, result.signupMethod)}`);
+      res.json(result);
     } catch (err) {
+      this.logger.error(`In generate error:${err}`);
       if (err instanceof JsonWebTokenError) {
         throw new UnauthorizedException(err);
       }

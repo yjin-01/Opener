@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotExistException } from 'src/authentication/exception/not.exist.exception';
 import { plainToInstance } from 'class-transformer';
+import { EntityManager } from 'typeorm';
+import { Artist } from 'src/artist/entity/artist.entity';
+import { Group } from 'src/group/entity/group.entity';
 import { UserRepository } from './interface/user.repository';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { enctypt } from './utils/encrypt';
@@ -21,17 +24,25 @@ export class UserService {
   constructor(
     private readonly configService: ConfigService,
     @Inject('UserRepository') private userRepositoryImple: UserRepository,
+    private entityManager: EntityManager,
   ) {}
+
+  private readonly logger = new Logger('UserService');
 
   async deleteUser(userId: string, tokenUserId: string): Promise<void> {
     try {
+      this.logger.debug(`${userId}, ${tokenUserId}`);
+      console.log(`${userId}, ${tokenUserId}`);
       if (userId !== tokenUserId) {
+        this.logger.debug('invalid user and token');
+        console.log('invalid user and token');
         throw new InvalidException('invalid user and token');
       }
 
       return await this.userRepositoryImple.delete(userId);
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      this.logger.debug(error);
       throw error;
     }
   }
@@ -65,9 +76,45 @@ export class UserService {
       }
 
       const result = await this.userRepositoryImple.findFollow(userId);
-      return result!.map((userArtist) => plainToInstance(FollowArtist, userArtist.artist));
+      return result!
+        .map((following) => {
+          if (following.artist) {
+            return {
+              id: following.artist.id,
+              name: following.artist.artistName,
+              type: 'member',
+              image: following.artist.artistImage,
+            };
+          }
+          return {
+            id: following.group.id,
+            name: following.group.groupName,
+            type: 'group',
+            image: following.group.groupImage,
+          };
+        })
+        .map((userArtist) => plainToInstance(FollowArtist, userArtist));
     } catch (error) {
-      throw new Error(error);
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async changeFollowArtist(
+    userId: string,
+    followDto: FollowUpdateDto,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      await this.userRepositoryImple.changeFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
@@ -136,9 +183,27 @@ export class UserService {
         await user.encrypt(this.configService, enctypt);
       }
 
-      return await this.userRepositoryImple.create(user);
+      const artistIds = await this.entityManager
+        .getRepository(Artist)
+        .createQueryBuilder('a')
+        .select(['a.id AS artistId'])
+        .where('id IN(:...ids)', { ids: user.myArtists })
+        .execute();
+
+      const groupIds = await this.entityManager
+        .getRepository(Group)
+        .createQueryBuilder('g')
+        .select(['g.id AS groupId'])
+        .where('id IN(:...ids)', { ids: user.myArtists })
+        .execute();
+
+      return await this.userRepositoryImple.createWithIds(
+        user,
+        artistIds,
+        groupIds,
+      );
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
       throw error;
     }
   }

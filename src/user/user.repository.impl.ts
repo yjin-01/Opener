@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import { User } from './entity/user.entity';
 import { UserRepository } from './interface/user.repository';
 import { ExistException } from './exception/exist.exception';
@@ -7,7 +8,12 @@ import { UserToArtist } from './entity/user.artist.entity';
 import { UserSignupDto } from './dto/user.signup.dto';
 import { UserUpdateProfileDto } from './dto/user.update.profile.dto';
 import { FollowDto } from './dto/follow.dto';
-import { FollowUpdateDto } from './dto/follow.update.dto';
+import {
+  FollowGroup,
+  FollowUpdateDto,
+  FollowArtist,
+} from './dto/follow.update.dto';
+
 
 @Injectable()
 export class UserRepositoryImple implements UserRepository {
@@ -19,7 +25,8 @@ export class UserRepositoryImple implements UserRepository {
   ): Promise<void> {
     try {
       await this.entityManager.transaction(async (transactionManager) => {
-        const [deleteResult, insertResult] = await Promise.all([
+
+        if (changeFollowDto.deleteArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
             .createQueryBuilder()
@@ -29,16 +36,42 @@ export class UserRepositoryImple implements UserRepository {
             .andWhere('artist_id IN(:...ids)', {
               ids: changeFollowDto.deleteArtistIds,
             })
-            .execute(),
+            .execute();
+        }
+
+        if (changeFollowDto.deleteGroupIds.length > 0) {
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .delete()
+            .from(UserToArtist)
+            .where('user_id = :userId', { userId })
+            .andWhere('group_id IN(:...ids)', {
+              ids: changeFollowDto.deleteGroupIds,
+            })
+            .execute();
+        }
+
+        if (changeFollowDto.addArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
             .createQueryBuilder()
             .insert()
             .into(UserToArtist)
             .values(changeFollowDto.toFollowArtist(userId))
-            .execute(),
-        ]);
-        console.log(deleteResult, insertResult);
+            .execute();
+        }
+
+        if (changeFollowDto.addGroupIds.length > 0) {
+          transactionManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder()
+            .insert()
+            .into(UserToArtist)
+            .values(changeFollowDto.toFollowGroup(userId))
+            .execute();
+        }
+
       });
     } catch (error) {
       console.error(error);
@@ -55,7 +88,8 @@ export class UserRepositoryImple implements UserRepository {
         ]);
       });
     } catch (error) {
-      throw new Error(error);
+      console.log(error);
+      throw error;
     }
   }
 
@@ -69,16 +103,16 @@ export class UserRepositoryImple implements UserRepository {
 
   async findFollow(userId: string): Promise<UserToArtist[] | []> {
     try {
-      return (
-        (await this.entityManager
-          .getRepository(UserToArtist)
-          .createQueryBuilder('ua')
-          .select(['ua.id'])
-          .where('ua.userId = :userId', { userId })
-          .leftJoinAndSelect('ua.artist', 'a')
-          .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
-          .getMany()) || []
-      );
+      return await this.entityManager
+        .getRepository(UserToArtist)
+        .createQueryBuilder('ua')
+        .leftJoinAndSelect('ua.artist', 'a')
+        .leftJoinAndSelect('ua.group', 'g')
+        .select(['ua.id'])
+        .addSelect(['a.id', 'a.artistName', 'a.artistImage'])
+        .addSelect(['g.id', 'g.groupName', 'g.groupImage'])
+        .where('ua.userId = :userId', { userId })
+        .getMany();
     } catch (error) {
       throw Error(error);
     }
@@ -195,6 +229,68 @@ export class UserRepositoryImple implements UserRepository {
             .insert()
             .into(UserToArtist)
             .values(user.extractArtists(identifiers[0].id))
+            .execute();
+        }
+
+        return transactioManager
+          .getRepository(User)
+          .findOneBy({ id: identifiers[0].id });
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async createWithIds(
+    user: UserSignupDto,
+    artistIds,
+    groupIds,
+  ): Promise<User | null> {
+    try {
+      return await this.entityManager.transaction(async (transactioManager) => {
+        const alreadyExistUser = await transactioManager
+          .getRepository(User)
+          .findOneBy({ email: user.email });
+
+        if (alreadyExistUser) {
+          throw new ExistException('exist user');
+        }
+
+        const { identifiers } = await transactioManager
+          .getRepository(User)
+          .createQueryBuilder()
+          .insert()
+          .into(User)
+          .values([user])
+          .execute();
+
+        if (user.hasArtists()) {
+          await transactioManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder('ua')
+            .insert()
+            .into(UserToArtist)
+            .values(
+              artistIds.map(({ artistId }) => plainToInstance(FollowArtist, {
+                artistId,
+                userId: identifiers[0].id,
+              })),
+            )
+            .execute();
+          //   console.log(artistIds.map(({artist_id}) => ({artist_id, user_id: identifiers[0].id})))
+          // console.log(groupIds.map(({group_id}) => ({group_id, user_id: identifiers[0].id})))
+          await transactioManager
+            .getRepository(UserToArtist)
+            .createQueryBuilder('ua')
+            .insert()
+            .into(UserToArtist)
+            .values(
+              groupIds.map(({ groupId }) => plainToInstance(FollowGroup, {
+                groupId,
+                userId: identifiers[0].id,
+              })),
+            )
             .execute();
         }
 

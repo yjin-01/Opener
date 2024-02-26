@@ -10,6 +10,5 @@ export default (configService: ConfigService): TypeOrmModuleOptions => ({
   database: configService.get('DATABASE'),
   entities: [configService.get('ENTITIES')],
   timezone: 'Asia/Seoul',
-  logging: true,
   poolSize: Number(configService.get('POOL_SIZE')),
-} as TypeOrmModuleOptions);
+}) as TypeOrmModuleOptions;

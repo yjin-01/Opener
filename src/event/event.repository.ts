@@ -203,11 +203,9 @@ export class EventRepository {
       // 현재 날짜 기준으로 검색
       const today = moment().format('YYYY-MM-DD'); // 현재 날짜 및 시간
 
-      query.andWhere('e.startDate <= :today', { today });
       query.andWhere('e.endDate >= :today', { today });
 
       // 정렬 필터
-
       query
         .orderBy('COUNT(eventLikes.id)', 'DESC')
         .addOrderBy('e.sequence', 'DESC')
@@ -257,7 +255,7 @@ export class EventRepository {
 
       // 정렬 필터
 
-      query.orderBy('e.sequence', 'DESC');
+      query.orderBy('e.sequence', 'DESC').limit(20);
 
       const eventList = await query.getRawMany();
 
@@ -305,6 +303,35 @@ export class EventRepository {
             userArtistIds,
           },
         )
+        .getRawMany();
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // 아티스트가 참여한 이벤트 조회 (targetId)
+  async findEventTargetByTargetDate(userArtistIds, targetDate) {
+    try {
+      const result = await this.entityManager
+        .getRepository(EventTarget)
+        .createQueryBuilder('et')
+        .leftJoinAndSelect('et.eventId', 'e')
+        .select([
+          'et.eventId AS eventId',
+          'et.artistId AS artistId',
+          'et.groupId AS groupId',
+        ])
+        .where(
+          '(et.artistId IN (:...userArtistIds) OR et.groupId IN (:...userArtistIds))',
+          {
+            userArtistIds,
+          },
+        )
+        .andWhere('e.startDate <= :targetDate', { targetDate })
+        .andWhere('e.endDate >= :targetDate', { targetDate })
         .getRawMany();
 
       return result;
@@ -447,8 +474,8 @@ export class EventRepository {
   }
 
   // 유저가 좋아요 누른 이벤트 조회
-  async findEventLikeByUserId(
-    userId: string,
+  async findEventLike(
+    eventIdList: string[],
     status: string = '',
   ): Promise<Event[]> {
     try {
@@ -472,8 +499,11 @@ export class EventRepository {
           'e.addressDetail AS addressDetail',
           'e.createdAt AS createdAt',
         ])
-        .addSelect(['COUNT(el.id) AS likeCount'])
-        .where('el.userId = :userId', { userId });
+        .addSelect(['COUNT(el.id) AS likeCount']);
+
+      if (eventIdList.length !== 0) {
+        query.andWhere('e.id IN (:...eventIdList)', { eventIdList });
+      }
 
       // 현재 날짜 기준으로 검색
       const today = moment().format('YYYY-MM-DD'); // 현재 날짜 및 시간
@@ -491,6 +521,41 @@ export class EventRepository {
 
       query.groupBy('e.id');
       query.orderBy('e.sequence', 'DESC');
+
+      const eventList = await query.getRawMany();
+
+      return eventList;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async findEventLikeByUserId(userId: string): Promise<Event[]> {
+    try {
+      const query = this.entityManager
+        .getRepository(Event)
+        .createQueryBuilder('e')
+        .leftJoinAndSelect('e.eventLikes', 'el')
+        .select([
+          'e.id AS id',
+          'e.sequence AS sequence',
+          'e.userId AS userId',
+          'e.placeName AS placeName',
+          'e.description AS description',
+          'e.eventType AS eventType ',
+          'e.startDate AS startDate',
+          'e.endDate AS endDate',
+          'e.eventUrl AS eventUrl',
+          'e.organizerSns AS organizerSns',
+          'e.snsType AS snsType',
+          'e.address AS address',
+          'e.addressDetail AS addressDetail',
+          'e.createdAt AS createdAt',
+        ])
+        .where('el.userId = :userId', { userId });
+
+      query.groupBy('e.id');
 
       const eventList = await query.getRawMany();
 
@@ -694,6 +759,52 @@ export class EventRepository {
           const event = await this.findOneEventByEventId(eventId);
 
           return event;
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async deleteEvent(eventId: string, userId: string): Promise<Boolean> {
+    try {
+      const originEvent = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventId } });
+
+      if (!originEvent) throw new NotFoundException('Event not exist');
+
+      if (originEvent.userId !== userId) throw new ConflictException('The user is not the author');
+
+      const result = await this.entityManager
+        .transaction(async (transactioManager) => {
+          // 1. 행사 수정
+          await transactioManager.getRepository(Event).softDelete({
+            id: eventId,
+          });
+
+          // 참여자 삭제
+          await transactioManager
+            .getRepository(EventTarget)
+            .softDelete({ eventId });
+
+          // 태그 삭제
+          await transactioManager
+            .getRepository(EventTag)
+            .softDelete({ eventId });
+
+          // 이미지 삭제
+          await transactioManager
+            .getRepository(EventImage)
+            .softDelete({ eventId });
+
+          return true;
         })
         .catch((error) => {
           console.error(error);
