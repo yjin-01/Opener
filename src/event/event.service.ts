@@ -562,16 +562,18 @@ export class EventService {
 
   //  V2
   async getEventByUserLike(userId: string, status: string): Promise<Event[]> {
-    const eventList = await this.eventRepository.findEventLikeByUserId(
-      userId,
-      status,
-    );
+    const eventUserLikeList = await this.eventRepository.findEventLikeByUserId(userId);
 
-    if (eventList.length === 0) {
+    if (eventUserLikeList.length === 0) {
       return [];
     }
 
-    const targetEventIds = eventList.map((el) => el.id);
+    const targetEventIds = eventUserLikeList.map((el) => el.id);
+
+    const eventList = await this.eventRepository.findEventLike(
+      targetEventIds,
+      status,
+    );
 
     // 이벤트 이미지 조회
     const imageList = await this.eventRepository.findEventImageByEventId({
