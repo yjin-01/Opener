@@ -50,6 +50,8 @@ describe('email.service verificateEmail 테스트', () => {
       emailRepository,
     );
 
+    emailRepository.find = jest.fn().mockResolvedValue(null);
+
     await expect(
       emailService.verificateEmail(verificationEmailDto),
     ).rejects.toThrow(new NotExistException('not exist verification record'));
