@@ -61,6 +61,29 @@ export class ArtistRepository {
     };
   }
 
+  // 그룹 + 아티스트(멤버 + 솔로)
+  async findAllArtsitAndGroupByMonth({ month }) {
+    // eslint-disable-next-line max-len
+    let query = ' SELECT g.id , g.group_name AS name , g.group_image AS image, g.debut_date AS birthday, "group" as type'
+      + ' FROM `groups` g'
+      + ' WHERE 1 = 1'
+      + ` AND MONTH(g.debut_date) = ${month}`;
+
+    query
+      += ' UNION'
+      + ' SELECT a.id, a.artist_name AS name, a.artist_image AS image'
+      + ' , a.birthday AS birthday, IF(a.is_solo = 1, "solo", "member") as type'
+      + ' FROM artists a'
+      + ' WHERE 1 = 1 '
+      + ` AND MONTH(a.birthday) = ${month}`;
+
+    query += ' ORDER BY DAY(birthday) ASC';
+
+    const artistAndGroupList = await this.entityManager.query(query);
+
+    return artistAndGroupList;
+  }
+
   async findAllArtsitByGroup(groupId: string): Promise<Artist[] | null> {
     const artistList = await this.entityManager
       .getRepository(Artist)
