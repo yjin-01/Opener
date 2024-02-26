@@ -312,6 +312,35 @@ export class EventRepository {
     }
   }
 
+  // 아티스트가 참여한 이벤트 조회 (targetId)
+  async findEventTargetByTargetDate(userArtistIds, targetDate) {
+    try {
+      const result = await this.entityManager
+        .getRepository(EventTarget)
+        .createQueryBuilder('et')
+        .leftJoinAndSelect('et.eventId', 'e')
+        .select([
+          'et.eventId AS eventId',
+          'et.artistId AS artistId',
+          'et.groupId AS groupId',
+        ])
+        .where(
+          '(et.artistId IN (:...userArtistIds) OR et.groupId IN (:...userArtistIds))',
+          {
+            userArtistIds,
+          },
+        )
+        .andWhere('e.startDate <= :targetDate', { targetDate })
+        .andWhere('e.endDate >= :targetDate', { targetDate })
+        .getRawMany();
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   // 이벤트에 참여한 아티스트 조회 (eventId)
   async findEventTargetByEventId({ targetEventIds }) {
     try {

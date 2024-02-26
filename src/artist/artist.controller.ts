@@ -41,6 +41,32 @@ export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
   @Public()
+  @Get('/group/month')
+  @ApiQuery({
+    name: 'month',
+    example: '02',
+    type: String,
+  })
+  @ApiOperation({
+    summary: '그룹,아티스트(멤버 +  솔로) 목록 조회',
+    description: '그룹,아티스트를 조회합니다.',
+  })
+  @ApiOkResponse({
+    description: '해당 달의 생일 또는 데뷔인 그룹, 아티스트(멤버 +  솔로) 목록',
+    type: ArtistListResponse,
+  })
+  async getArtistListByMonth(
+    @Query('month') month: string,
+  ): Promise<ArtistListResponse | null> {
+    try {
+      return await this.artistService.getArtistListByMonth({ month });
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  @Public()
   @Get('/group')
   @ApiOperation({
     summary: '그룹,아티스트(멤버 +  솔로) 목록 조회',
