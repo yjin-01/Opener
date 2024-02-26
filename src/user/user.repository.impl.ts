@@ -14,6 +14,7 @@ import {
   FollowArtist,
 } from './dto/follow.update.dto';
 
+
 @Injectable()
 export class UserRepositoryImple implements UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
@@ -24,6 +25,7 @@ export class UserRepositoryImple implements UserRepository {
   ): Promise<void> {
     try {
       await this.entityManager.transaction(async (transactionManager) => {
+
         if (changeFollowDto.deleteArtistIds.length > 0) {
           transactionManager
             .getRepository(UserToArtist)
@@ -69,6 +71,7 @@ export class UserRepositoryImple implements UserRepository {
             .values(changeFollowDto.toFollowGroup(userId))
             .execute();
         }
+
       });
     } catch (error) {
       console.error(error);

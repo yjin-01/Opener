@@ -118,6 +118,24 @@ export class UserService {
     }
   }
 
+  async changeFollowArtist(
+    userId: string,
+    followDto: FollowUpdateDto,
+  ): Promise<void> {
+    try {
+      const user = await this.userRepositoryImple.findById(userId);
+
+      if (!user) {
+        throw new NotExistException('not exist user');
+      }
+
+      await this.userRepositoryImple.changeFollow(userId, followDto);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async unfollowArtist(
     userId: string,
     followDto: FollowDto,

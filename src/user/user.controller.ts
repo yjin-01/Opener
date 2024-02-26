@@ -171,6 +171,49 @@ export class UserController {
     }
   }
 
+  @Put('/:userId/artists')
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '팔로우 아티스트 변경',
+    description: '아티스트 팔로우 목록을 수정합니다',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 아이디',
+    example: 'a391ffcf-d364-471d-bfb3-fb6f7b173cf3',
+  })
+  @ApiBody({ type: FollowArtistUpdateRequest })
+  @ApiOkResponse({
+    description: '아티스트 팔로우가 수정되었을 때 반환합니다',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'request가 잘못되었을 때 반환합니다(body, param, query 값들이 일치하지 않을 때)',
+    type: UserBadRequest,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'token 없이 요청하였을 때 반환합니다',
+  })
+  @ApiNotFoundResponse({
+    description: '계정이 존재하지 않을 때 반환합니다',
+  })
+  @ApiInternalServerErrorResponse({
+    description: '예외가 발생하여 서버가 처리할 수 없을 때 반환합니다',
+  })
+  async updateFollowArtist(
+    @Param('userId') userId: string,
+      @Body(new UserValidationPipe()) followDto: FollowUpdateDto,
+  ): Promise<void | null> {
+    try {
+      await this.userService.changeFollowArtist(userId, followDto);
+    } catch (error) {
+      if (error instanceof NotExistException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   @Delete('/:userId/artists')
   @ApiBearerAuth('accessToken')
   @ApiOperation({
