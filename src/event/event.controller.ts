@@ -11,6 +11,7 @@ import {
   Put,
   NotFoundException,
   ConflictException,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -494,6 +495,53 @@ export class EventController {
       return await this.eventService.updateEvent(eventId, eventUpdateRequest);
     } catch (error) {
       if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({
+    summary: '행사 삭제',
+    description: ' 행사 삭제 API.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    description: '이벤트의 Id',
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '유저 Id',
+  })
+  @ApiOkResponse({
+    description: '',
+    type: Boolean,
+  })
+  @ApiNotFoundResponse({
+    description: '존재하지 않는 event Id인 경우',
+    type: EventNotfoundResponse,
+  })
+  @ApiConflictResponse({
+    description: '작성자가 아닌 경우',
+    type: EventConflitResponse,
+  })
+  @Delete(':eventId')
+  async deleteEvent(
+    @Param('eventId') eventId: string,
+      @Query('userId') userId: string,
+  ): Promise<Boolean> {
+    try {
+      return await this.eventService.deleteEvent(eventId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error(error);
+        throw error;
+      }
+
+      if (error instanceof ConflictException) {
         console.error(error);
         throw error;
       }

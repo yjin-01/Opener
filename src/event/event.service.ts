@@ -640,7 +640,10 @@ export class EventService {
     }
   }
 
-  async updateEvent(eventId: string, eventUpdateRequest: EventUpdateRequest) {
+  async updateEvent(
+    eventId: string,
+    eventUpdateRequest: EventUpdateRequest,
+  ): Promise<Event | null> {
     try {
       const event = await this.eventRepository.updateEvent(
         eventId,
@@ -668,6 +671,17 @@ export class EventService {
       event.eventTags = tagList;
 
       return event;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async deleteEvent(eventId: string, userId: string): Promise<Boolean> {
+    try {
+      const result = await this.eventRepository.deleteEvent(eventId, userId);
+
+      return result;
     } catch (error) {
       console.error(error);
       throw error;

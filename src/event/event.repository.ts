@@ -743,6 +743,52 @@ export class EventRepository {
     }
   }
 
+  async deleteEvent(eventId: string, userId: string): Promise<Boolean> {
+    try {
+      const originEvent = await this.entityManager
+        .getRepository(Event)
+        .findOne({ where: { id: eventId } });
+
+      if (!originEvent) throw new NotFoundException('Event not exist');
+
+      if (originEvent.userId !== userId) throw new ConflictException('The user is not the author');
+
+      const result = await this.entityManager
+        .transaction(async (transactioManager) => {
+          // 1. 행사 수정
+          await transactioManager.getRepository(Event).softDelete({
+            id: eventId,
+          });
+
+          // 참여자 삭제
+          await transactioManager
+            .getRepository(EventTarget)
+            .softDelete({ eventId });
+
+          // 태그 삭제
+          await transactioManager
+            .getRepository(EventTag)
+            .softDelete({ eventId });
+
+          // 이미지 삭제
+          await transactioManager
+            .getRepository(EventImage)
+            .softDelete({ eventId });
+
+          return true;
+        })
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        });
+
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   // 행사 수정 신청
   async createEventUpdateApplication(
     eventUpdateApplicationRequestDto: EventUpdateApplicationRequestDto,
