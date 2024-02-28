@@ -49,14 +49,13 @@ Opener는 K-pop 팬을 위한 오프라인 행사 정보를 한 곳에서 쉽게
 <br/>
 
 # 🔎 DB ERD
-<img wide="100%"  src ="https://github.com/yjin-01/cumadi-server/blob/main/public/mcb_ERD.png?raw=true">
+<img wide="100%"  src ="https://github.com/yjin-01/Opener/blob/main/ERD.png?raw=true">
 
 <br/>
 <br/>
 
 # 🔗 시스템 아키텍쳐
-<img wide="100%"  src ="![image](https://github.com/yjin-01/Opener/assets/92343369/6ef80e94-0cb5-4eb0-9d99-1fdb4d080782)
-">
+<img wide="100%"  src ="https://github.com/yjin-01/Opener/blob/main/backend.png?raw=true">
 
 <br/>
 <br/>
